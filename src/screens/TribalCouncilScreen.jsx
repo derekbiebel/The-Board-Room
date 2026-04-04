@@ -86,12 +86,14 @@ export default function TribalCouncilScreen() {
       ]);
     }
 
-    setNeutralResults([...neutralResults, { npc: q.npc.name, good: isGood, bad: isBad, text: resultText }]);
+    const newResults = [...neutralResults, { npc: q.npc.name, good: isGood, bad: isBad, text: resultText }];
+    setNeutralResults(newResults);
 
     if (neutralQIndex < neutralQuestions.length - 1) {
       setNeutralQIndex(neutralQIndex + 1);
     } else {
-      setPhase('vote');
+      // Show the last result before moving to vote
+      setPhase('neutral_last_result');
     }
   };
 
@@ -280,6 +282,26 @@ export default function TribalCouncilScreen() {
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Last neutral result before voting */}
+        {phase === 'neutral_last_result' && neutralResults.length > 0 && (
+          <div className="fade-in">
+            <div className={`text-center py-3 mb-4 rounded-lg text-sm ${
+              neutralResults[neutralResults.length - 1].good ? 'bg-jungle/10 text-jungle-light' :
+              neutralResults[neutralResults.length - 1].bad ? 'bg-ember/10 text-ember' :
+              'bg-earth-800 text-earth-600'
+            }`}>
+              {neutralResults[neutralResults.length - 1].text}
+            </div>
+
+            <button
+              onClick={() => setPhase('vote')}
+              className="w-full bg-torch hover:bg-torch-dim text-earth-900 font-bold py-3 rounded-lg transition-colors active:scale-95"
+            >
+              Proceed to Vote
+            </button>
           </div>
         )}
 
