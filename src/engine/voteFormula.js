@@ -164,9 +164,9 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
       const voterFaction = voter.factionId;
       if (voterFaction) {
         const targetContestant = contestants.find((c) => c.id === target.id);
-        // Protect faction-mates
+        // Faction members NEVER vote for each other — hard block
         if (targetContestant?.factionId === voterFaction) {
-          factionBonus = -4;
+          continue; // skip this target entirely
         }
         // Follow faction leader's target
         if (factionTargets[voterFaction] === target.id) {

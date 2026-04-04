@@ -12,12 +12,15 @@ export function simulateNpcFactions(contestants, npcFactions, day, playerCircle)
   const active = contestants.filter((c) => !c.isEliminated);
   let factions = [...npcFactions];
 
-  // Remove dead factions (1 or fewer active members)
+  // Remove dead factions (1 or fewer active members) and leaderless factions
   factions = factions.filter((f) => {
     const aliveMembers = f.memberIds.filter((id) =>
       active.some((c) => c.id === id)
     );
-    return aliveMembers.length >= 2;
+    if (aliveMembers.length < 2) return false;
+    // If leader was eliminated, faction disbands
+    if (!active.some((c) => c.id === f.leaderId)) return false;
+    return true;
   }).map((f) => ({
     ...f,
     memberIds: f.memberIds.filter((id) => active.some((c) => c.id === id)),
