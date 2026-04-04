@@ -294,12 +294,12 @@ export default function TribalCouncilScreen() {
     }
 
     // Grant stat point for surviving
-    store.grantStatPoint(2);
+    store.grantStatPoint(day >= 10 ? 1 : 2);
     setScreen('statAllocation');
   };
 
   const handleExposureContinue = () => {
-    useGameStore.getState().grantStatPoint(2);
+    useGameStore.getState().grantStatPoint(day >= 10 ? 1 : 2);
     setScreen('statAllocation');
   };
 

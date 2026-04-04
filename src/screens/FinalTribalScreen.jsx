@@ -134,6 +134,10 @@ export default function FinalTribalScreen() {
           )}
 
           <div className="bg-earth-800 border border-earth-700 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-lg">{ARCHETYPES[questions[questionIndex].juror.archetype]?.emoji}</span>
+              <span className="text-xs text-sand font-medium">{ARCHETYPES[questions[questionIndex].juror.archetype]?.label}</span>
+            </div>
             <p className="text-sm text-earth-100 font-serif italic">
               {questions[questionIndex].question}
             </p>
