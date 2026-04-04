@@ -3,7 +3,7 @@ import useGameStore from '../stores/gameStore';
 import { ARCHETYPES } from '../data/archetypes';
 import { CONVERSATION_GOALS, RECRUIT_GOAL, resolveStatCheck } from '../engine/statCheck';
 import { checkRecruitAcceptance, getMaxCircleSize } from '../engine/allianceEngine';
-import { shuffle, pick } from '../utils/random';
+import { shuffle, pick, randInt } from '../utils/random';
 
 const OPTION_POOLS = {
   trust: [
@@ -351,15 +351,21 @@ export default function ConversationScreen() {
             <div className="space-y-2">
               <button
                 onClick={() => setPhase('lobby')}
-                className="w-full bg-torch hover:bg-torch-dim text-earth-900 font-bold py-3 rounded-lg transition-colors active:scale-95"
+                className="w-full bg-earth-800 hover:bg-earth-700 text-earth-100 font-bold py-3 rounded-lg border border-earth-700 transition-colors active:scale-95"
               >
                 🗳️ Suggest who to vote out
+                <span className="block text-[10px] text-earth-600 font-normal mt-0.5">Risk: your target might find out</span>
               </button>
               <button
-                onClick={() => setScreen('camp')}
-                className="w-full bg-earth-800 hover:bg-earth-700 text-earth-100 font-medium py-3 rounded-lg border border-earth-700 transition-colors active:scale-95"
+                onClick={() => {
+                  // Skip lobbying = genuine connection, +1 bonus relationship
+                  updateRelationship(contestant.id, 1);
+                  setScreen('camp');
+                }}
+                className="w-full bg-torch hover:bg-torch-dim text-earth-900 font-bold py-3 rounded-lg transition-colors active:scale-95"
               >
-                Skip — Return to Office
+                Just talk — Build trust
+                <span className="block text-[10px] text-earth-900/60 font-normal mt-0.5">+1 bonus relationship</span>
               </button>
             </div>
           ) : (
@@ -398,6 +404,10 @@ export default function ConversationScreen() {
                         c.id,
                         outcomeResult.tier === 'strong_success' ? 'strong' : 'partial'
                       );
+                      // Lobby leak risk: 25% chance your target finds out
+                      if (randInt(1, 100) <= 25) {
+                        updateRelationship(c.id, -2);
+                      }
                       setScreen('camp');
                     }}
                     className="w-full bg-earth-800 border border-earth-700 rounded-lg p-3 flex items-center gap-3 hover:border-torch transition-colors active:scale-[0.98]"
