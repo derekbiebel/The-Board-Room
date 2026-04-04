@@ -58,6 +58,9 @@ const useGameStore = create(
       // Lobbying
       lobbyedVotes: {},
 
+      // Game log — tracks key decisions for endgame recap
+      gameLog: [],
+
       // History
       eliminationLog: [],
       currentConversation: null,
@@ -191,6 +194,11 @@ const useGameStore = create(
             ? { ...s.player.stats, cut: Math.min(10, s.player.stats.cut + 1) }
             : s.player.stats,
         },
+      })),
+
+      // Game log
+      logEvent: (event) => set((s) => ({
+        gameLog: [...s.gameLog, { ...event, day: s.day }],
       })),
 
       // Lobbying
@@ -462,6 +470,7 @@ const useGameStore = create(
         weeklyWarnings: [],
         weeklyEvents: [],
         betrayals: [],
+        gameLog: [],
         eliminationLog: [],
         currentConversation: null,
         lastTribalResult: null,

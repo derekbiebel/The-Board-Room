@@ -67,7 +67,7 @@ export default function ConversationScreen() {
     currentConversation, contestants, player,
     playerCircle,
     setConversationGoal, setConversationOptions, setConversationOutcome,
-    updateRelationship, lobbyNpc, recruitToCircle, setScreen,
+    updateRelationship, lobbyNpc, recruitToCircle, logEvent, setScreen,
   } = useGameStore();
 
   const [phase, setPhase] = useState('goal');
@@ -177,6 +177,13 @@ export default function ConversationScreen() {
       ],
     };
 
+    // Log significant outcomes
+    if (result.tier === 'hard_fail') {
+      logEvent({ type: 'bad_convo', npc: contestant.name, goal: currentConversation.goal });
+    } else if (result.tier === 'strong_success') {
+      logEvent({ type: 'great_convo', npc: contestant.name, goal: currentConversation.goal });
+    }
+
     // Ripple effect: hard fails spread — someone nearby overheard
     if (result.tier === 'hard_fail') {
       const bystanders = active.filter((c) => c.id !== contestant.id && !playerCircle.includes(c.id));
@@ -200,6 +207,7 @@ export default function ConversationScreen() {
         // Strong success = auto-accept. You nailed the pitch.
         recruitToCircle(contestant.id);
         updateRelationship(contestant.id, 1);
+        logEvent({ type: 'recruited', npc: contestant.name });
         setRecruitResult({ accepted: true, message: pick([
           `They extend a hand. "I'm in. Let's do this."`,
           `A nod. "About time someone asked. Count me in."`,
@@ -360,6 +368,7 @@ export default function ConversationScreen() {
               <button
                 onClick={() => {
                   updateRelationship(contestant.id, 1);
+                  logEvent({ type: 'trust', npc: contestant.name });
                   setPhase('trustBuilt');
                 }}
                 className="w-full bg-jungle/10 hover:bg-jungle/20 text-earth-100 font-bold py-4 rounded-lg border border-jungle/30 transition-colors active:scale-95"
@@ -404,9 +413,11 @@ export default function ConversationScreen() {
                         c.id,
                         outcomeResult.tier === 'strong_success' ? 'strong' : 'partial'
                       );
+                      logEvent({ type: 'lobby', via: contestant.name, target: c.name });
                       // Lobby leak risk: 25% chance your target finds out
                       if (randInt(1, 100) <= 25) {
                         updateRelationship(c.id, -2);
+                        logEvent({ type: 'lobby_leaked', target: c.name });
                       }
                       setScreen('camp');
                     }}
