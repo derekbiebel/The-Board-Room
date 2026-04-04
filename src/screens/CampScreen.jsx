@@ -47,7 +47,10 @@ export default function CampScreen() {
   };
 
   const handleTalk = () => {
-    if (conversationsLeft <= 0 || !actionMenu) return;
+    if (!actionMenu) return;
+    const isCircle = playerCircle.includes(actionMenu);
+    const canFree = isCircle && freeCircleChatLeft;
+    if (conversationsLeft <= 0 && !canFree) return;
     startConversation(actionMenu);
     setActionMenu(null);
   };
