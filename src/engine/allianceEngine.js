@@ -201,7 +201,7 @@ export function updateCircleLoyalty(playerCircle, contestants, playerRelationshi
  * @returns {{ detected: boolean, message: string }}
  */
 export function processBetrayal(playerSnk, victimPer) {
-  const detectionChance = Math.max(10, 40 + (victimPer * 5) - (playerSnk * 5));
+  const detectionChance = Math.max(15, 50 + (victimPer * 3) - (playerSnk * 4));
   const roll = randInt(1, 100);
   const detected = roll <= detectionChance;
 

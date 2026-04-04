@@ -10,7 +10,7 @@ const INITIAL_STATS = { ath: 1, soc: 1, snk: 1, lead: 1, cut: 1, res: 1, per: 1 
 
 /** Max conversations per week: starts at 6, decreases by 1 every 2 weeks, min 2 */
 export function getMaxConversations(day) {
-  return Math.max(3, 6 - Math.floor((day - 1) / 2));
+  return Math.max(4, 6 - Math.floor((day - 1) / 3));
 }
 
 const useGameStore = create(

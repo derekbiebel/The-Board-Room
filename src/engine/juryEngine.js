@@ -19,7 +19,7 @@ export function buildJury(eliminationLog, contestants, player, betrayals) {
     let bitterness = 0;
     if (relationship <= -3) bitterness += 4;
     else if (relationship <= -1) bitterness += 2;
-    if (wasBetrayedByPlayer) bitterness += 4;
+    if (wasBetrayedByPlayer) bitterness += 3;
     if (wasInCircle) bitterness += 2;
     bitterness = Math.min(10, Math.max(0, bitterness + randInt(-1, 1)));
 

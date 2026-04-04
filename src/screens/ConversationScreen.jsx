@@ -138,8 +138,8 @@ export default function ConversationScreen() {
     // Cutthroat con: conversation relationship gains capped at +1 (only at very high cut)
     if (relDelta > 1 && player.stats.cut >= 8) relDelta = 1;
 
-    // Social Skills con: failures hurt double
-    if (relDelta < 0 && player.stats.soc >= 5) relDelta *= 2;
+    // Social Skills con: failures hurt more (1.5x, rounded)
+    if (relDelta < 0 && player.stats.soc >= 5) relDelta = Math.floor(relDelta * 1.5);
 
     // Resilience: halves negative impacts only (pure damage reduction)
     if (player.stats.res >= 5 && relDelta < 0) relDelta = Math.ceil(relDelta / 2);

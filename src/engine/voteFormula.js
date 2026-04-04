@@ -184,9 +184,9 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
         if (playerStats.lead >= 6) threatBonus += 1; // Leadership con: threat
         if (playerStats.per >= 5) threatBonus -= 1; // Perception pro: harder to blindside
 
-        // Circle threat: bigger circles make you a bigger target for non-circle NPCs
+        // Circle threat: bigger circles make you a target, but scales sub-linearly
         if (!circleSet.has(voter.id) && playerCircle.length >= 2) {
-          threatBonus += playerCircle.length; // 2 members = +2, 4 members = +4
+          threatBonus += Math.round(Math.sqrt(playerCircle.length) * 1.5); // 2=+2, 3=+3, 4=+3, 6=+4
         }
       }
 
