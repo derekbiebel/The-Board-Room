@@ -11,7 +11,7 @@ const STAT_ORDER = ['ath', 'soc', 'snk', 'lead', 'cut', 'res', 'per'];
 export default function CampScreen() {
   const {
     day, contestants, player, conversationsToday,
-    immunePlayerId, eliminationLog,
+    immunePlayerId, eliminationLog, gameLog,
     playerCircle, npcFactions, weeklyIntel, weeklyWarnings, weeklyEvents,
     startConversation, setScreen,
   } = useGameStore();
@@ -125,6 +125,7 @@ export default function CampScreen() {
               {active.map((c) => {
                 const faction = npcFactions.find((f) => f.memberIds.includes(c.id));
                 const showFaction = faction && player.stats.per >= 2;
+                const convoCount = gameLog.filter((e) => e.npc === c.name).length;
                 return (
                   <ContestantCard
                     key={c.id}
@@ -136,6 +137,7 @@ export default function CampScreen() {
                     isCircleMember={playerCircle.includes(c.id)}
                     knownStats={player.knownInfo[c.id] || {}}
                     factionName={showFaction ? faction.name : null}
+                    convoCount={convoCount}
                   />
                 );
               })}

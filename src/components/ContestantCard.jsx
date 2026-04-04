@@ -24,7 +24,7 @@ function relColor(value) {
 export default function ContestantCard({
   contestant, relationship = 0, onApproach, disabled = false,
   isImmune = false, isCircleMember = false, knownStats = {},
-  factionName = null,
+  factionName = null, convoCount = 0,
 }) {
   const archetype = ARCHETYPES[contestant.archetype];
 
@@ -76,7 +76,9 @@ export default function ContestantCard({
           <span className={`text-sm font-bold ${relColor(relationship)}`}>
             {relationship > 0 ? '+' : ''}{relationship}
           </span>
-          <div className="text-[10px] text-earth-600">rel</div>
+          <div className="text-[10px] text-earth-600">
+            {convoCount > 0 ? `${convoCount} chat${convoCount !== 1 ? 's' : ''}` : 'no contact'}
+          </div>
         </div>
       </div>
 

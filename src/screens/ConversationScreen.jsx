@@ -177,11 +177,13 @@ export default function ConversationScreen() {
       ],
     };
 
-    // Log significant outcomes
+    // Log all conversation outcomes
     if (result.tier === 'hard_fail') {
       logEvent({ type: 'bad_convo', npc: contestant.name, goal: currentConversation.goal });
     } else if (result.tier === 'strong_success') {
       logEvent({ type: 'great_convo', npc: contestant.name, goal: currentConversation.goal });
+    } else {
+      logEvent({ type: 'convo', npc: contestant.name, goal: currentConversation.goal, tier: result.tier });
     }
 
     // Ripple effect: hard fails spread — someone nearby overheard
