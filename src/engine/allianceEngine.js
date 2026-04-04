@@ -212,33 +212,21 @@ export function processBetrayal(playerSnk, victimPer) {
 }
 
 /**
- * Enforce circle cap: if circle exceeds max, lowest loyalty member leaves.
+ * Soft circle cap: over-cap members get loyalty pressure instead of instant eviction.
+ * Returns loyalty penalties for over-cap members.
  */
 export function enforceCircleCap(playerCircle, contestants, maxSize) {
-  if (playerCircle.length <= maxSize) return { newCircle: playerCircle, removed: null };
+  if (playerCircle.length <= maxSize) return { newCircle: playerCircle, removed: null, overCapPenalties: [] };
 
-  // Find lowest loyalty member
-  let lowestId = null;
-  let lowestLoyalty = Infinity;
+  // Over-cap: apply -2 loyalty pressure to lowest loyalty members
+  const overCount = playerCircle.length - maxSize;
+  const sorted = [...playerCircle]
+    .map((id) => ({ id, loyalty: contestants.find((c) => c.id === id)?.circleLoyalty || 0 }))
+    .sort((a, b) => a.loyalty - b.loyalty);
 
-  for (const id of playerCircle) {
-    const c = contestants.find((x) => x.id === id);
-    if (!c) continue;
-    const loyalty = c.circleLoyalty || 0;
-    if (loyalty < lowestLoyalty) {
-      lowestLoyalty = loyalty;
-      lowestId = id;
-    }
-  }
+  const penalties = sorted.slice(0, overCount).map((s) => s.id);
 
-  if (lowestId) {
-    return {
-      newCircle: playerCircle.filter((id) => id !== lowestId),
-      removed: contestants.find((c) => c.id === lowestId),
-    };
-  }
-
-  return { newCircle: playerCircle, removed: null };
+  return { newCircle: playerCircle, removed: null, overCapPenalties: penalties };
 }
 
 function fuzzyLabel(value) {

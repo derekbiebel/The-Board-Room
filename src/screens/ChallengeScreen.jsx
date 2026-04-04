@@ -69,8 +69,13 @@ export default function ChallengeScreen() {
     if (wins >= 2 || losses >= 2 || newRound >= 3) {
       // Final
       const playerWon = wins >= 2;
+      const closeLoss = !playerWon && wins === 1; // went 1-2
       setImmunity(playerWon ? 'player' : null);
-      setChallengeResult({ playerWon, wins, losses });
+      setChallengeResult({ playerWon, wins, losses, closeLoss });
+      // Close loss consolation: double vote token
+      if (closeLoss && !hasDoubleVote) {
+        grantDoubleVote();
+      }
       setPhase('final');
     } else {
       setRound(newRound);
@@ -267,11 +272,13 @@ export default function ChallengeScreen() {
             <p className="text-sm text-earth-600">
               {wins >= 2
                 ? `You won ${wins}-${losses}. You're safe this week.`
-                : `You lost ${losses}-${wins}. No protection at the board meeting.`
+                : wins === 1
+                  ? `Close — you lost ${losses}-${wins}. No immunity, but management noticed your effort.`
+                  : `You lost ${losses}-${wins}. No protection at the board meeting.`
               }
             </p>
-            {wins >= 2 && (
-              <p className="text-xs text-jungle-light mt-2">Choose your reward below</p>
+            {wins === 1 && !hasDoubleVote && (
+              <p className="text-xs text-torch mt-2">⚡ Consolation: Double Vote Token earned</p>
             )}
           </div>
 

@@ -113,7 +113,7 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
       const animosity = rel * -2.5;
 
       // Spotlight bonus
-      const spotlight = target.id === lowestSpotlightId ? 2 : 0;
+      const spotlight = target.id === lowestSpotlightId ? 1.5 : 0;
 
       // Lobby bonus: if the player convinced this NPC to vote for this target
       let lobbyBonus = 0;
@@ -221,7 +221,7 @@ export function tallyVotes(npcVotes, playerVote, playerLeadStat, extraVoteWeight
   // Player vote weight: 1 normally, 2 if strong leader (threshold 7)
   // Double vote token sets weight to 3 (doesn't stack multiplicatively with leadership)
   let playerWeight = 1;
-  if (playerLeadStat >= 7) playerWeight = 2;
+  if (playerLeadStat >= 8) playerWeight = 2;
   if (extraVoteWeight > 0) playerWeight = 3; // double vote = flat 3 regardless of leadership
 
   // Count NPC votes

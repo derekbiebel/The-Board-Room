@@ -358,17 +358,17 @@ const useGameStore = create(
         const activeCount = contestants.filter((c) => !c.isEliminated).length;
         const maxSize = getMaxCircleSize(activeCount + 1); // +1 for player
         const capResult = enforceCircleCap(playerCircle, contestants, maxSize);
-        if (capResult.removed) {
-          events.push(`${capResult.removed.name} has been pushed out of your circle. The restructuring is tightening — and they're bitter about it.`);
-          contestants = contestants.map((c) =>
-            c.id === capResult.removed.id ? { ...c, circleStatus: 'former', circleLoyalty: 0, circleJoinedDay: null } : c
-          );
-          // Relationship hit for being pushed out
-          newPlayerRelationships[capResult.removed.id] = Math.max(-5, (newPlayerRelationships[capResult.removed.id] || 0) - 2);
-          contestants = contestants.map((c) =>
-            c.id === capResult.removed.id ? { ...c, relationships: { ...c.relationships, [s.player.id]: Math.max(-5, (c.relationships[s.player.id] || 0) - 2) } } : c
-          );
-          playerCircle = capResult.newCircle;
+        // Soft cap: over-cap members get loyalty pressure instead of instant eviction
+        if (capResult.overCapPenalties && capResult.overCapPenalties.length > 0) {
+          for (const penId of capResult.overCapPenalties) {
+            const penNpc = contestants.find((c) => c.id === penId);
+            contestants = contestants.map((c) =>
+              c.id === penId ? { ...c, circleLoyalty: Math.max(0, (c.circleLoyalty || 0) - 2) } : c
+            );
+            if (penNpc) {
+              events.push(`${penNpc.name} is feeling squeezed in your circle. The restructuring is tightening.`);
+            }
+          }
         }
 
         // NPC faction simulation
