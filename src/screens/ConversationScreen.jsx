@@ -117,7 +117,9 @@ export default function ConversationScreen() {
     // Find the goal to get stat mappings
     const goal = currentConversation.goal === 'recruit'
       ? RECRUIT_GOAL
-      : CONVERSATION_GOALS.find((g) => g.key === currentConversation.goal);
+      : currentConversation.goal === 'eavesdrop'
+        ? EAVESDROP_GOAL
+        : CONVERSATION_GOALS.find((g) => g.key === currentConversation.goal);
     // Social Skills bonus: only applies to social goals (trust + recruit)
     const isSocialGoal = goal.key === 'trust' || goal.key === 'recruit';
     const socBonus = isSocialGoal ? Math.floor(player.stats.soc / 3) : 0;
