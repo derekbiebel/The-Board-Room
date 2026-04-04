@@ -101,7 +101,9 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
       const statSum = Object.values(target.stats).reduce((a, b) => a + b, 0);
       const statCount = Object.keys(target.stats).length;
       const avgStat = statSum / statCount;
-      const weakness = Math.max(0, (3.0 - avgStat)); // only significantly below-average targets get weakness penalty
+      // Weakness only kicks in if significantly below average (gap > 1)
+      const rawGap = 3.0 - avgStat;
+      const weakness = rawGap > 1 ? rawGap : 0;
 
       // Relationship: negative = more likely to vote against, positive = protective
       // Stronger multiplier makes relationships the primary driver of votes
@@ -175,7 +177,7 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
       // New hire grace period
       let graceBonus = 0;
       if (target.id === playerId) {
-        if (day <= 2) graceBonus = -3;
+        if (day <= 2) graceBonus = -2;
         else if (day <= 4) graceBonus = -1;
       }
 
