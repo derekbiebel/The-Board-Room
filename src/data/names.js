@@ -1,8 +1,8 @@
 export const FIRST_NAMES = [
-  'Marcus', 'Elena', 'Jordan', 'Priya', 'Dex',
-  'Camille', 'Theo', 'Nalani', 'Rafe', 'Bianca',
-  'Omar', 'Sloane', 'Kai', 'Valentina', 'Bryce',
-  'Zara', 'Declan', 'Mireya', 'Troy', 'Asha',
-  'Nolan', 'Isla', 'Santos', 'Freya', 'Dante',
-  'Layla', 'Reed', 'Tamsin', 'Jace', 'Vera',
+  'Parvati', 'Boston Rob', 'Cirie', 'Coach', 'Sandra',
+  'Ozzy', 'Rupert', 'Cochran', 'Wentworth', 'Tony',
+  'Kim', 'Malcolm', 'Aubry', 'Tyson', 'Ciera',
+  'Devens', 'Stephenie', 'Yul', 'Tai', 'Natalie',
+  'Jeremy', 'Michaela', 'Penner', 'Abi-Maria', 'Fishbach',
+  'Denise', 'Jay', 'Kelley', 'Domenick', 'Chrissy',
 ];
