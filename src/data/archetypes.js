@@ -5,7 +5,7 @@
  */
 export const ARCHETYPES = {
   schemer: {
-    label: 'Corporate Shark',
+    label: 'Shark',
     emoji: '🦈',
     weights: { ath: 0.8, soc: 1.0, snk: 1.8, lead: 0.7, cut: 1.6, res: 0.6, per: 1.2 },
     motivations: [
@@ -15,7 +15,7 @@ export const ARCHETYPES = {
     ],
   },
   loyalist: {
-    label: 'Team Player',
+    label: 'Loyal',
     emoji: '🤝',
     weights: { ath: 1.0, soc: 1.2, snk: 0.5, lead: 1.4, cut: 0.4, res: 1.6, per: 1.0 },
     motivations: [
@@ -25,7 +25,7 @@ export const ARCHETYPES = {
     ],
   },
   floater: {
-    label: 'Quiet Quitter',
+    label: 'Floater',
     emoji: '☕',
     weights: { ath: 0.9, soc: 1.3, snk: 1.1, lead: 0.7, cut: 0.8, res: 1.2, per: 1.3 },
     motivations: [
@@ -35,7 +35,7 @@ export const ARCHETYPES = {
     ],
   },
   bully: {
-    label: 'Micromanager',
+    label: 'Bully',
     emoji: '📋',
     weights: { ath: 1.8, soc: 0.6, snk: 0.7, lead: 1.2, cut: 1.5, res: 1.0, per: 0.5 },
     motivations: [
@@ -45,7 +45,7 @@ export const ARCHETYPES = {
     ],
   },
   wildcard: {
-    label: 'Loose Cannon',
+    label: 'Wildcard',
     emoji: '🎯',
     weights: { ath: 1.0, soc: 1.0, snk: 1.0, lead: 1.0, cut: 1.0, res: 1.0, per: 1.0 },
     motivations: [
@@ -55,7 +55,7 @@ export const ARCHETYPES = {
     ],
   },
   strategist: {
-    label: 'VP Material',
+    label: 'Strategist',
     emoji: '♟️',
     weights: { ath: 0.7, soc: 1.0, snk: 1.1, lead: 1.5, cut: 1.0, res: 0.9, per: 1.5 },
     motivations: [
@@ -65,7 +65,7 @@ export const ARCHETYPES = {
     ],
   },
   social_butterfly: {
-    label: 'Office Gossip',
+    label: 'Social',
     emoji: '💬',
     weights: { ath: 0.7, soc: 1.8, snk: 0.6, lead: 1.0, cut: 0.5, res: 1.1, per: 1.6 },
     motivations: [
