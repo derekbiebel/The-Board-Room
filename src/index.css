@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --color-torch: #F97316;
+  --color-torch-dim: #C2410C;
+  --color-ember: #DC2626;
+  --color-jungle: #15803D;
+  --color-jungle-light: #22C55E;
+  --color-sand: #D4A574;
+  --color-earth-900: #1C1917;
+  --color-earth-800: #292524;
+  --color-earth-700: #44403C;
+  --color-earth-600: #57534E;
+  --color-earth-300: #D6D3D1;
+  --color-earth-100: #F5F5F4;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Georgia', 'Times New Roman', serif;
+}
+
+html {
+  background-color: var(--color-earth-900);
+  color: var(--color-earth-300);
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Typewriter effect for narration */
+@keyframes typewriter {
+  from { max-height: 0; }
+  to { max-height: 500px; }
+}
+
+.narration-reveal {
+  animation: typewriter 1.5s ease-out forwards;
+  overflow: hidden;
+}
+
+/* Torch glow effect */
+.torch-glow {
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.3), 0 0 40px rgba(249, 115, 22, 0.1);
+}
+
+/* Vote reveal animation */
+@keyframes vote-reveal {
+  0% { opacity: 0; transform: rotateY(90deg); }
+  100% { opacity: 1; transform: rotateY(0deg); }
+}
+
+.vote-card {
+  animation: vote-reveal 0.6s ease-out forwards;
+}
+
+/* Fade in */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
