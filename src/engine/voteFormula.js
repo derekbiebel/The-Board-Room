@@ -99,7 +99,7 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
       const statSum = Object.values(target.stats).reduce((a, b) => a + b, 0);
       const statCount = Object.keys(target.stats).length;
       const avgStat = statSum / statCount;
-      const weakness = Math.max(0, (4.3 - avgStat)); // 4.3 is NPC average; lower avg = more "weak"
+      const weakness = Math.max(0, (3.0 - avgStat)); // only significantly below-average targets get weakness penalty
 
       // Relationship: negative = more likely to vote against, positive = protective
       // Stronger multiplier makes relationships the primary driver of votes
@@ -172,7 +172,10 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
 
       // New hire grace period: -1 vote weight weeks 1-2
       let graceBonus = 0;
-      if (target.id === playerId && day <= 2) graceBonus = -1;
+      if (target.id === playerId) {
+        if (day <= 2) graceBonus = -2;
+        else if (day <= 4) graceBonus = -1;
+      }
 
       // Trait effects and circle threat on voting
       let threatBonus = 0;
