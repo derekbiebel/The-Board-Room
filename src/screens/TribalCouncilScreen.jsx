@@ -4,6 +4,7 @@ import { ARCHETYPES } from '../data/archetypes';
 import { simulateVotes, tallyVotes, pickTribalSpotlight, SPOTLIGHT_DESCRIPTIONS } from '../engine/voteFormula';
 import { processBetrayal } from '../engine/allianceEngine';
 import { pick, randInt, shuffle } from '../utils/random';
+import { NEUTRAL_QUESTIONS } from '../data/neutralQuestions';
 
 export default function TribalCouncilScreen() {
   const {
@@ -37,33 +38,13 @@ export default function TribalCouncilScreen() {
     const askers = shuffle([...neutrals]).slice(0, Math.min(3, neutrals.length));
 
     const questions = askers.map((npc) => {
-      const qs = [
-        {
-          question: `${npc.name} glances at you. "We've never really talked. Why should I keep you around?"`,
-          options: [
-            { text: "Because I'm not coming for you. I can't say that about everyone here.", goodFor: ['floater', 'loyalist', 'social_butterfly'], badFor: ['schemer', 'bully'] },
-            { text: "Because I'm useful. Stick with me and you'll see.", goodFor: ['strategist', 'schemer'], badFor: ['loyalist', 'social_butterfly'] },
-            { text: "You shouldn't need a reason not to vote for me. I haven't done anything to you.", goodFor: ['wildcard', 'floater'], badFor: ['bully', 'strategist'] },
-          ],
-        },
-        {
-          question: `${npc.name}: "I don't know you. And in this office, that makes me nervous."`,
-          options: [
-            { text: "Fair. Let me fix that — what do you need from me?", goodFor: ['social_butterfly', 'loyalist', 'floater'], badFor: ['bully', 'schemer'] },
-            { text: "I've been busy surviving. But I see you. And I respect how you've played.", goodFor: ['strategist', 'schemer', 'wildcard'], badFor: ['loyalist'] },
-            { text: "Nervous is smart. It means you're paying attention.", goodFor: ['bully', 'wildcard'], badFor: ['social_butterfly', 'floater'] },
-          ],
-        },
-        {
-          question: `${npc.name}: "Everyone's got their people. Who are yours? And why aren't I one of them?"`,
-          options: [
-            { text: "Honestly? I wish you were. I should have reached out sooner.", goodFor: ['loyalist', 'social_butterfly'], badFor: ['schemer', 'strategist'] },
-            { text: "I keep my circle small on purpose. But that doesn't make you my enemy.", goodFor: ['strategist', 'floater', 'wildcard'], badFor: ['bully'] },
-            { text: "I don't owe you an explanation for who I spend my time with.", goodFor: ['bully', 'schemer'], badFor: ['loyalist', 'social_butterfly', 'floater'] },
-          ],
-        },
-      ];
-      return { npc, archetype: npc.archetype, ...pick(qs) };
+      const q = pick(NEUTRAL_QUESTIONS);
+      return {
+        npc,
+        archetype: npc.archetype,
+        question: q.question.replace('{NAME}', npc.name),
+        options: q.options,
+      };
     });
 
     if (questions.length === 0) {
