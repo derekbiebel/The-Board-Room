@@ -290,34 +290,12 @@ export default function ChallengeScreen() {
             }
           </p>
 
-          {wins >= 2 ? (
-            <div className="space-y-2">
-              <p className="text-xs text-earth-600 text-center mb-1">Choose your reward:</p>
-              <button
-                onClick={() => { grantStatPoint(1); setScreen('tribal'); }}
-                className="w-full bg-jungle/10 border border-jungle/30 rounded-lg p-4 text-center hover:bg-jungle/20 transition-colors active:scale-95"
-              >
-                <span className="text-sm font-bold text-jungle-light">📊 +1 Stat Point</span>
-                <span className="block text-[10px] text-earth-600 mt-0.5">Permanently improve one skill</span>
-              </button>
-              {!hasDoubleVote && (
-                <button
-                  onClick={() => { grantDoubleVote(); setScreen('tribal'); }}
-                  className="w-full bg-torch/10 border border-torch/30 rounded-lg p-4 text-center hover:bg-torch/20 transition-colors active:scale-95"
-                >
-                  <span className="text-sm font-bold text-torch">⚡ Double Vote Token</span>
-                  <span className="block text-[10px] text-earth-600 mt-0.5">Your vote counts for +2 extra at one board meeting</span>
-                </button>
-              )}
-            </div>
-          ) : (
-            <button
-              onClick={() => setScreen('tribal')}
-              className="w-full bg-earth-800 hover:bg-earth-700 text-earth-100 font-bold py-3 rounded-lg border border-earth-700 transition-colors active:scale-95"
-            >
-              🏛️ Head to Board Meeting
-            </button>
-          )}
+          <button
+            onClick={() => setScreen('tribal')}
+            className="w-full bg-earth-800 hover:bg-earth-700 text-earth-100 font-bold py-3 rounded-lg border border-earth-700 transition-colors active:scale-95"
+          >
+            🏛️ Head to Board Meeting
+          </button>
         </div>
       )}
     </div>
