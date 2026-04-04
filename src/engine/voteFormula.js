@@ -218,10 +218,11 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
 export function tallyVotes(npcVotes, playerVote, playerLeadStat, extraVoteWeight = 0) {
   const tally = {};
 
-  // Player vote weight: 1 normally, 2 if strong leader (threshold 7), + double vote token
+  // Player vote weight: 1 normally, 2 if strong leader (threshold 7)
+  // Double vote token sets weight to 3 (doesn't stack multiplicatively with leadership)
   let playerWeight = 1;
   if (playerLeadStat >= 7) playerWeight = 2;
-  playerWeight += extraVoteWeight;
+  if (extraVoteWeight > 0) playerWeight = 3; // double vote = flat 3 regardless of leadership
 
   // Count NPC votes
   for (const { targetId } of npcVotes) {

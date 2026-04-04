@@ -132,6 +132,15 @@ export default function TribalCouncilScreen() {
     setVoteResult(result);
     setTribalResult(result);
 
+    // Rivalry bonus: if you voted for someone who has a known rival, that rival likes you more
+    for (const rivalry of knownRivalries) {
+      if (rivalry.npc1Id === targetId) {
+        useGameStore.getState().updateRelationship(rivalry.npc2Id, 1);
+      } else if (rivalry.npc2Id === targetId) {
+        useGameStore.getState().updateRelationship(rivalry.npc1Id, 1);
+      }
+    }
+
     // Start reveal animation
     setPhase('reveal');
   };

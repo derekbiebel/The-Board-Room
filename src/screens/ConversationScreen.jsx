@@ -245,8 +245,9 @@ export default function ConversationScreen() {
           }
         }
 
-        // Chance to find an immunity idol (10% on strong success, only if you don't have one)
-        if (result.tier === 'strong_success' && !hasIdol && randInt(1, 100) <= 10) {
+        // Chance to find an immunity idol (8% on strong success, only after week 5, only if you don't have one)
+        const store = useGameStore.getState();
+        if (result.tier === 'strong_success' && !hasIdol && store.day >= 5 && randInt(1, 100) <= 8) {
           findIdol();
           logEvent({ type: 'idol_found' });
           setOutcomeNarration(`You overheard ${contestant.name} planning to vote for ${voteTarget?.name}. But more importantly — you found something tucked behind the filing cabinet. An immunity idol.`);
