@@ -73,7 +73,7 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
   let lowestSpotlightId = null;
   let lowestSpotlightVal = Infinity;
   for (const t of allTargets) {
-    if (t.id === playerId && day <= 3) continue; // grace period: can't be spotlighted
+    if (t.id === playerId && day <= 4) continue; // grace period: can't be spotlighted
     const val = t.stats[spotlightStat] || 1;
     if (val < lowestSpotlightVal) {
       lowestSpotlightVal = val;

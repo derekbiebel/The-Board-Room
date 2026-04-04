@@ -24,6 +24,7 @@ const useGameStore = create(
       phase: 'morning',
       conversationsToday: 0,
       eavesdropsToday: 0,
+      maxEavesdrops: 2,
       immunePlayerId: null,
       spotlightStat: null,
       gameOver: false,

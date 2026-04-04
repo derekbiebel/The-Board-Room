@@ -25,7 +25,8 @@ export default function CampScreen() {
   const active = contestants.filter((c) => !c.isEliminated);
   const maxConversations = getMaxConversations(day);
   const conversationsLeft = maxConversations - conversationsToday;
-  const eavesdropsLeft = 1 - eavesdropsToday;
+  const maxEavesdrops = useGameStore((s) => s.maxEavesdrops) || 2;
+  const eavesdropsLeft = maxEavesdrops - eavesdropsToday;
   const isChallengeDay = day % 3 === 0;
   const [actionMenu, setActionMenu] = useState(null); // contestantId or null
 
