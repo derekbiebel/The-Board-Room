@@ -171,7 +171,7 @@ export default function CampScreen() {
                   Warn {target.name} (+2 rel)
                 </button>
                 <button
-                  onClick={() => setTippedOff(true)}
+                  onClick={() => useGameStore.setState({ tippedOff: true })}
                   className="flex-1 bg-earth-700 rounded-lg py-2 text-xs text-earth-600 hover:text-earth-300 transition-colors active:scale-95"
                 >
                   Keep it to yourself
