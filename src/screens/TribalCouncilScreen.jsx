@@ -34,7 +34,7 @@ export default function TribalCouncilScreen() {
     const npcVotes = simulateVotes(
       contestants, player.id, player.stats,
       player.relationships, immunePlayerId, spotlight, lobbyedVotes,
-      playerCircle, npcFactions, targetId
+      playerCircle, npcFactions, targetId, day
     );
 
     // Save NPC vote details for potential elimination recap

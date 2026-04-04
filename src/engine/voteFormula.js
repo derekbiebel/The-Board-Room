@@ -47,7 +47,7 @@ export const SPOTLIGHT_DESCRIPTIONS = {
  * @param {Array} npcFactions - NPC faction objects
  * @param {string|null} playerVoteTarget - who the player voted for (for circle coordination)
  */
-export function simulateVotes(contestants, playerId, playerStats, playerRelationships, immuneId, spotlightStat, lobbyedVotes = {}, playerCircle = [], npcFactions = [], playerVoteTarget = null) {
+export function simulateVotes(contestants, playerId, playerStats, playerRelationships, immuneId, spotlightStat, lobbyedVotes = {}, playerCircle = [], npcFactions = [], playerVoteTarget = null, day = 1) {
   const active = contestants.filter((c) => !c.isEliminated);
   const votes = [];
 
@@ -170,6 +170,10 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
         }
       }
 
+      // New hire grace period: -1 vote weight weeks 1-2
+      let graceBonus = 0;
+      if (target.id === playerId && day <= 2) graceBonus = -1;
+
       // Trait effects and circle threat on voting
       let threatBonus = 0;
       if (target.id === playerId) {
@@ -186,7 +190,7 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
       // Noise — wider range adds more unpredictability
       const noise = randInt(-2, 2);
 
-      const score = weakness + animosity + spotlight + lobbyBonus + circleBonus + factionBonus + threatBonus + noise;
+      const score = weakness + animosity + spotlight + lobbyBonus + circleBonus + factionBonus + threatBonus + graceBonus + noise;
 
       if (score > bestScore) {
         bestScore = score;
