@@ -69,11 +69,11 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
   ].filter((t) => t.id !== immuneId && (immuneId !== 'player' || t.id !== playerId));
 
   // Find lowest spotlight stat holder for +2 bonus
-  // Player exempt from spotlight targeting during grace period (weeks 1-2)
+  // Player exempt from spotlight weeks 1-2, reduced spotlight weeks 3-4
   let lowestSpotlightId = null;
   let lowestSpotlightVal = Infinity;
   for (const t of allTargets) {
-    if (t.id === playerId && day <= 2) continue; // grace period: can't be spotlighted
+    if (t.id === playerId && day <= 3) continue; // grace period: can't be spotlighted
     const val = t.stats[spotlightStat] || 1;
     if (val < lowestSpotlightVal) {
       lowestSpotlightVal = val;
@@ -123,38 +123,38 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
         lobbyBonus = lobby.strength === 'strong' ? 6 : 3;
       }
 
-      // Circle coordination: circle members tend to vote with player, BUT can resist
+      // Circle coordination: circle members vote with you AND actively protect you
       let circleBonus = 0;
-      if (circleSet.has(voter.id) && playerVoteTarget) {
+      if (circleSet.has(voter.id)) {
         const voterData = contestants.find((c) => c.id === voter.id);
         const loyalty = voterData?.circleLoyalty || 3;
 
-        if (playerVoteTarget === target.id) {
-          // Pull toward player's target, scaled by loyalty
-          circleBonus = 2 + (loyalty * 0.5); // 2.5 to 7 depending on loyalty
+        // UNIQUE CIRCLE BENEFIT: actively deflect votes away from player
+        // This is something lobbying can't do — circle members shield you
+        if (target.id === playerId) {
+          circleBonus = -(2 + loyalty * 0.5); // -2.5 to -7: circle members resist voting for you
+        }
+
+        // Vote coordination: follow player's target
+        if (playerVoteTarget && playerVoteTarget === target.id) {
+          circleBonus += 3 + (loyalty * 0.5); // 3.5 to 8 depending on loyalty
 
           // Resistance: if circle member likes the target, they push back
           const voterRelWithTarget = voterData?.relationships?.[target.id] || 0;
           if (voterRelWithTarget >= 2) {
-            circleBonus -= voterRelWithTarget * 1.5; // strong friendships override weak loyalty
+            circleBonus -= voterRelWithTarget * 1.5;
           }
         }
 
-        // Counter-pull: if a faction is pressuring this circle member
-        if (voterData?.factionId) {
-          // Shouldn't happen (circle members aren't in factions), but guard it
-        } else {
-          // Check if any faction leader has positive relationship with this circle member
-          for (const faction of npcFactions) {
-            const leaderTarget = factionTargets[faction.id];
-            if (!leaderTarget) continue;
-            const leader = contestants.find((c) => c.id === faction.leaderId);
-            if (!leader) continue;
-            const leaderRelWithMember = leader.relationships?.[voter.id] || 0;
-            if (leaderRelWithMember >= 2 && leaderTarget === target.id) {
-              // Faction leader is lobbying your circle member
-              circleBonus += (leaderRelWithMember - 1); // faction influence competes
-            }
+        // Counter-pull: faction leaders can pressure your circle members
+        for (const faction of npcFactions) {
+          const leaderTarget = factionTargets[faction.id];
+          if (!leaderTarget) continue;
+          const leader = contestants.find((c) => c.id === faction.leaderId);
+          if (!leader) continue;
+          const leaderRelWithMember = leader.relationships?.[voter.id] || 0;
+          if (leaderRelWithMember >= 2 && leaderTarget === target.id) {
+            circleBonus += (leaderRelWithMember - 1);
           }
         }
       }
@@ -174,11 +174,11 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
         }
       }
 
-      // New hire grace period
+      // New hire grace period — gradual ramp off
       let graceBonus = 0;
       if (target.id === playerId) {
         if (day <= 2) graceBonus = -1;
-        else if (day <= 3) graceBonus = -0.5;
+        else if (day <= 4) graceBonus = -0.5;
       }
 
       // Trait effects and circle threat on voting
