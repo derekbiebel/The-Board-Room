@@ -300,9 +300,9 @@ export default function ConversationScreen() {
           }
         }
 
-        // Chance to find an immunity idol (after week 5, 15% on strong success, 5% on partial)
+        // Chance to find an immunity idol (after week 5, ~3.5% effective per eavesdrop = ~65% per game)
         const store = useGameStore.getState();
-        const idolChance = result.tier === 'strong_success' ? 15 : 5;
+        const idolChance = result.tier === 'strong_success' ? 8 : 3;
         if (!hasIdol && store.day >= 5 && randInt(1, 100) <= idolChance) {
           findIdol();
           logEvent({ type: 'idol_found' });
