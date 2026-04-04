@@ -25,7 +25,7 @@ export default function CampScreen() {
   const active = contestants.filter((c) => !c.isEliminated);
   const maxConversations = getMaxConversations(day);
   const conversationsLeft = maxConversations - conversationsToday;
-  const maxEavesdrops = useGameStore((s) => s.maxEavesdrops) || 2;
+  const maxEavesdrops = useGameStore((s) => s.maxEavesdrops) || 3;
   const circleChatsToday = useGameStore((s) => s.circleChatsToday);
   const eavesdropsLeft = maxEavesdrops - eavesdropsToday;
   const freeCircleChatLeft = playerCircle.length > 0 && circleChatsToday < 1;
