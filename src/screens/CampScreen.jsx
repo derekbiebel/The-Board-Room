@@ -13,11 +13,13 @@ export default function CampScreen() {
     day, contestants, player, conversationsToday,
     immunePlayerId, eliminationLog, gameLog,
     playerCircle, npcFactions, weeklyIntel, weeklyWarnings, weeklyEvents,
-    startConversation, setScreen,
+    eavesdropIntel,
+    startConversation, updateRelationship, logEvent, setScreen,
   } = useGameStore();
 
   const [tab, setTab] = useState('camp');
   const [dismissedNotifs, setDismissedNotifs] = useState(false);
+  const [tippedOff, setTippedOff] = useState(false);
 
   const active = contestants.filter((c) => !c.isEliminated);
   const maxConversations = getMaxConversations(day);
@@ -118,6 +120,39 @@ export default function CampScreen() {
             </button>
           </div>
         )}
+
+        {/* Tip-off option: share eavesdrop intel with the target */}
+        {tab === 'camp' && eavesdropIntel && !tippedOff && (() => {
+          const targetRel = player.relationships[eavesdropIntel.votingForId] || 0;
+          if (targetRel < 1) return null;
+          const target = contestants.find((c) => c.id === eavesdropIntel.votingForId);
+          if (!target || target.isEliminated) return null;
+          return (
+            <div className="mb-3 bg-earth-800 border border-sand/30 rounded-lg p-3 fade-in">
+              <p className="text-xs text-sand mb-2">
+                👂 You know {eavesdropIntel.targetName} is gunning for <span className="text-earth-100 font-medium">{target.name}</span>. Tip them off?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    updateRelationship(target.id, 2);
+                    logEvent({ type: 'tip_off', npc: target.name, about: eavesdropIntel.targetName });
+                    setTippedOff(true);
+                  }}
+                  className="flex-1 bg-jungle/10 border border-jungle/30 rounded-lg py-2 text-xs text-jungle-light font-medium hover:bg-jungle/20 transition-colors active:scale-95"
+                >
+                  Warn {target.name} (+2 rel)
+                </button>
+                <button
+                  onClick={() => setTippedOff(true)}
+                  className="flex-1 bg-earth-700 rounded-lg py-2 text-xs text-earth-600 hover:text-earth-300 transition-colors active:scale-95"
+                >
+                  Keep it to yourself
+                </button>
+              </div>
+            </div>
+          );
+        })()}
 
         {tab === 'camp' && (
           <>

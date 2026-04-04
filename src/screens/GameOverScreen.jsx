@@ -124,6 +124,11 @@ function findKeyMoments(gameLog, betrayals, eliminationLog, contestants, player)
     moments.push({ day: e.day, type: 'win', text: `You discovered a rivalry between ${e.npc1} and ${e.npc2}.` });
   }
 
+  // Tip-offs
+  for (const e of gameLog.filter((x) => x.type === 'tip_off')) {
+    moments.push({ day: e.day, type: 'win', text: `You warned ${e.npc} that ${e.about} was coming for them.` });
+  }
+
   // Sort by day, take top 6
   moments.sort((a, b) => a.day - b.day);
   return moments.slice(0, 6);
