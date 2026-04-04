@@ -53,8 +53,8 @@ export default function ReactionTap({ onComplete }) {
       const avg = validTimes.length > 0
         ? validTimes.reduce((a, b) => a + b, 0) / validTimes.length
         : 999;
-      // Score: 100 = 200ms avg, 0 = 800ms+ avg
-      const score = Math.round(Math.max(0, Math.min(100, (800 - avg) / 6)));
+      // Score: 100 = 300ms avg, 0 = 1000ms+ avg (generous scaling)
+      const score = Math.round(Math.max(0, Math.min(100, (1000 - avg) / 7)));
       setPhase('done');
       setTimeout(() => onComplete(score), 500);
     } else {
@@ -116,8 +116,8 @@ export default function ReactionTap({ onComplete }) {
           ) : (
             <>
               <p className="text-3xl font-bold text-earth-100 mb-1">{showTime}ms</p>
-              <p className={`text-sm ${showTime < 350 ? 'text-jungle-light' : showTime < 500 ? 'text-sand' : 'text-ember'}`}>
-                {showTime < 350 ? 'Lightning!' : showTime < 500 ? 'Good' : 'Slow'}
+              <p className={`text-sm ${showTime < 400 ? 'text-jungle-light' : showTime < 600 ? 'text-sand' : 'text-ember'}`}>
+                {showTime < 400 ? 'Lightning!' : showTime < 600 ? 'Good' : 'Slow'}
               </p>
             </>
           )}

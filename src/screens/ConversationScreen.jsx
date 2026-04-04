@@ -236,11 +236,13 @@ export default function ConversationScreen() {
       result.relationshipDelta = 0;
 
       if (result.tier === 'strong_success' || result.tier === 'partial_success') {
-        // Success: learn who they're planning to vote for + discover a rivalry
-        const otherNpcs = active.filter((c) => c.id !== contestant.id);
-        const enemyRel = otherNpcs.map((c) => ({
-          id: c.id, name: c.name, rel: contestant.relationships[c.id] || 0,
-        })).sort((a, b) => a.rel - b.rel);
+        // Success: learn who they're planning to vote for (only active NPCs + player)
+        const voteOptions = active
+          .filter((c) => c.id !== contestant.id)
+          .map((c) => ({ id: c.id, name: c.name, rel: contestant.relationships[c.id] || 0 }));
+        // Include player as potential target
+        voteOptions.push({ id: player.id, name: player.name, rel: contestant.relationships[player.id] || 0 });
+        const enemyRel = voteOptions.sort((a, b) => a.rel - b.rel);
 
         // Who they'd vote for (lowest relationship)
         const voteTarget = enemyRel[0];
@@ -344,6 +346,7 @@ export default function ConversationScreen() {
           ]));
         }
       }
+      setConversationOutcome(result); // tracks eavesdrop count
       setPhase('outcome');
       return;
     }
