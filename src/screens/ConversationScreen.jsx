@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import useGameStore from '../stores/gameStore';
 import { ARCHETYPES } from '../data/archetypes';
-import { CONVERSATION_GOALS, RECRUIT_GOAL, resolveStatCheck } from '../engine/statCheck';
+import { CONVERSATION_GOALS, RECRUIT_GOAL, EAVESDROP_GOAL, resolveStatCheck } from '../engine/statCheck';
 import { checkRecruitAcceptance, getMaxCircleSize } from '../engine/allianceEngine';
 import { shuffle, pick, randInt } from '../utils/random';
 
@@ -55,6 +55,13 @@ const OPTION_POOLS = {
     { text: "I'm building something. A real team. You should be part of it.", tone: "bold", risk: "high" },
     { text: "Between us — I have a plan. But I need people I can trust.", tone: "hushed", risk: "medium" },
   ],
+  eavesdrop: [
+    { text: "You linger near their desk, pretending to check your phone.", tone: "subtle", risk: "medium" },
+    { text: "You position yourself at the next table in the break room.", tone: "casual", risk: "low" },
+    { text: "You \"accidentally\" walk by their meeting room with the door cracked.", tone: "bold", risk: "high" },
+    { text: "You check the shared calendar and happen to be in the same elevator.", tone: "calculated", risk: "medium" },
+    { text: "You stay late, knowing they always talk after everyone leaves.", tone: "patient", risk: "low" },
+  ],
 };
 
 function generateLocalOptions(goal, npcName) {
@@ -65,9 +72,10 @@ function generateLocalOptions(goal, npcName) {
 export default function ConversationScreen() {
   const {
     currentConversation, contestants, player,
-    playerCircle,
+    playerCircle, hasIdol, knownRivalries,
     setConversationGoal, setConversationOptions, setConversationOutcome,
-    updateRelationship, lobbyNpc, recruitToCircle, logEvent, setScreen,
+    updateRelationship, lobbyNpc, recruitToCircle, logEvent,
+    findIdol, setEavesdropIntel, addRivalry, setScreen,
   } = useGameStore();
 
   const [phase, setPhase] = useState('goal');
@@ -91,9 +99,10 @@ export default function ConversationScreen() {
     && !isCircleMember
     && contestant.circleStatus !== 'former';
 
-  // Pick 2 random conversation goals, potentially including recruit as a 3rd
+  // Pick 2 random conversation goals + eavesdrop always available + recruit if eligible
   const availableGoals = useMemo(() => {
     const goals = shuffle([...CONVERSATION_GOALS]).slice(0, 2);
+    goals.push(EAVESDROP_GOAL);
     if (canRecruit) goals.push(RECRUIT_GOAL);
     return goals;
   }, [canRecruit]);
@@ -198,6 +207,76 @@ export default function ConversationScreen() {
           `It went badly. And ${bystander.name} was standing right there.`,
         ];
       }
+    }
+
+    // Special handling for eavesdrop — spy on an NPC
+    if (currentConversation.goal === 'eavesdrop') {
+      // Undo relationship change — eavesdropping is secret
+      updateRelationship(contestant.id, -relDelta);
+      result.relationshipDelta = 0;
+
+      if (result.tier === 'strong_success' || result.tier === 'partial_success') {
+        // Success: learn who they're planning to vote for + discover a rivalry
+        const otherNpcs = active.filter((c) => c.id !== contestant.id);
+        const enemyRel = otherNpcs.map((c) => ({
+          id: c.id, name: c.name, rel: contestant.relationships[c.id] || 0,
+        })).sort((a, b) => a.rel - b.rel);
+
+        // Who they'd vote for (lowest relationship)
+        const voteTarget = enemyRel[0];
+        setEavesdropIntel({
+          targetId: contestant.id,
+          targetName: contestant.name,
+          votingForId: voteTarget?.id,
+          votingForName: voteTarget?.name,
+        });
+        logEvent({ type: 'eavesdrop', npc: contestant.name, learned: voteTarget?.name });
+
+        // Strong success also reveals a rivalry
+        if (result.tier === 'strong_success' && enemyRel.length >= 1 && enemyRel[0].rel <= -1) {
+          const rival = enemyRel[0];
+          const alreadyKnown = knownRivalries.some(
+            (r) => (r.npc1Id === contestant.id && r.npc2Id === rival.id) ||
+                   (r.npc1Id === rival.id && r.npc2Id === contestant.id)
+          );
+          if (!alreadyKnown) {
+            addRivalry({ npc1Id: contestant.id, npc1Name: contestant.name, npc2Id: rival.id, npc2Name: rival.name });
+            logEvent({ type: 'rivalry_found', npc1: contestant.name, npc2: rival.name });
+          }
+        }
+
+        // Chance to find an immunity idol (10% on strong success, only if you don't have one)
+        if (result.tier === 'strong_success' && !hasIdol && randInt(1, 100) <= 10) {
+          findIdol();
+          logEvent({ type: 'idol_found' });
+          setOutcomeNarration(`You overheard ${contestant.name} planning to vote for ${voteTarget?.name}. But more importantly — you found something tucked behind the filing cabinet. An immunity idol.`);
+          setPhase('outcome');
+          return;
+        }
+
+        setOutcomeNarration(
+          result.tier === 'strong_success'
+            ? `You overheard everything. ${contestant.name} is gunning for ${voteTarget?.name}. And there's bad blood between them.`
+            : `You caught a fragment. Sounds like ${contestant.name} is leaning toward voting for ${voteTarget?.name}.`
+        );
+      } else {
+        // Failed eavesdrop
+        if (result.tier === 'hard_fail') {
+          // Caught! Relationship penalty
+          updateRelationship(contestant.id, -2);
+          setOutcomeNarration(pick([
+            `${contestant.name} catches you lurking. "Were you listening?" This won't be forgotten.`,
+            `You got caught. ${contestant.name} stares daggers at you from across the room.`,
+          ]));
+        } else {
+          setOutcomeNarration(pick([
+            `You couldn't hear anything useful. Wasted trip.`,
+            `They were speaking too quietly. Nothing gained.`,
+          ]));
+        }
+      }
+      setPhase('outcome');
+      return;
     }
 
     // Special handling for recruitment — no free relationship gain

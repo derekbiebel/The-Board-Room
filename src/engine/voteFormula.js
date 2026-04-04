@@ -215,12 +215,13 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
  * Tally votes and determine who is eliminated.
  * Player vote is weighted by their lead stat.
  */
-export function tallyVotes(npcVotes, playerVote, playerLeadStat) {
+export function tallyVotes(npcVotes, playerVote, playerLeadStat, extraVoteWeight = 0) {
   const tally = {};
 
-  // Player vote weight: 1 normally, 2 if strong leader (threshold 7)
+  // Player vote weight: 1 normally, 2 if strong leader (threshold 7), + double vote token
   let playerWeight = 1;
   if (playerLeadStat >= 7) playerWeight = 2;
+  playerWeight += extraVoteWeight;
 
   // Count NPC votes
   for (const { targetId } of npcVotes) {

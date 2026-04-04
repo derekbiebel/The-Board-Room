@@ -9,11 +9,11 @@ const TOTAL_ROUNDS = 3;
 
 export default function ChallengeScreen() {
   const {
-    player, contestants, day,
-    setImmunity, setChallengeResult, grantStatPoint, setScreen,
+    player, contestants, day, hasDoubleVote,
+    setImmunity, setChallengeResult, grantStatPoint, grantDoubleVote, setScreen,
   } = useGameStore();
 
-  const [phase, setPhase] = useState('intro'); // intro | pick | roundResult | final
+  const [phase, setPhase] = useState('intro'); // intro | pick | roundResult | final | rewardChoice
   const [scenario] = useState(() => pick(CHALLENGE_SCENARIOS));
   const [round, setRound] = useState(1);
   const [usedStats, setUsedStats] = useState([]);
@@ -86,9 +86,7 @@ export default function ChallengeScreen() {
       setImmunity(winner.id === player.id ? 'player' : winner.id);
       setChallengeResult({ winnerId: winner.id, winnerName: winner.name, playerWon: winner.isPlayer, playerRank, rankings: standings });
 
-      if (winner.isPlayer) {
-        grantStatPoint(1);
-      }
+      // Don't auto-grant stat point — let player choose between stat point and double vote
 
       const winLines = [
         'Management is impressed. You\'re untouchable this week.',
@@ -266,7 +264,7 @@ export default function ChallengeScreen() {
                     <p className="text-xs text-earth-600 mt-1">You placed #{playerRank}</p>
                   )}
                   {winner.isPlayer && (
-                    <p className="text-xs text-jungle-light mt-1">+1 bonus stat point</p>
+                    <p className="text-xs text-jungle-light mt-1">Choose your reward</p>
                   )}
                 </>
               );
@@ -290,12 +288,41 @@ export default function ChallengeScreen() {
             ))}
           </div>
 
-          <button
-            onClick={() => setScreen('tribal')}
-            className="w-full bg-earth-800 hover:bg-earth-700 text-earth-100 font-bold py-3 rounded-lg border border-earth-700 transition-colors active:scale-95"
-          >
-            🏛️ Head to Board Meeting
-          </button>
+          {(() => {
+            const standings = Object.values(scores).sort((a, b) => b.total - a.total);
+            const playerWon = standings[0]?.isPlayer;
+            if (playerWon) {
+              return (
+                <div className="space-y-2">
+                  <p className="text-xs text-earth-600 text-center mb-1">Choose your reward:</p>
+                  <button
+                    onClick={() => { grantStatPoint(1); setScreen('tribal'); }}
+                    className="w-full bg-jungle/10 border border-jungle/30 rounded-lg p-4 text-center hover:bg-jungle/20 transition-colors active:scale-95"
+                  >
+                    <span className="text-sm font-bold text-jungle-light">📊 +1 Stat Point</span>
+                    <span className="block text-[10px] text-earth-600 mt-0.5">Permanently improve one skill</span>
+                  </button>
+                  {!hasDoubleVote && (
+                    <button
+                      onClick={() => { grantDoubleVote(); setScreen('tribal'); }}
+                      className="w-full bg-torch/10 border border-torch/30 rounded-lg p-4 text-center hover:bg-torch/20 transition-colors active:scale-95"
+                    >
+                      <span className="text-sm font-bold text-torch">⚡ Double Vote Token</span>
+                      <span className="block text-[10px] text-earth-600 mt-0.5">Your vote counts for +2 extra at one board meeting. One use.</span>
+                    </button>
+                  )}
+                </div>
+              );
+            }
+            return (
+              <button
+                onClick={() => setScreen('tribal')}
+                className="w-full bg-earth-800 hover:bg-earth-700 text-earth-100 font-bold py-3 rounded-lg border border-earth-700 transition-colors active:scale-95"
+              >
+                🏛️ Head to Board Meeting
+              </button>
+            );
+          })()}
         </div>
       )}
     </div>

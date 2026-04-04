@@ -58,6 +58,19 @@ const useGameStore = create(
       // Lobbying
       lobbyedVotes: {},
 
+      // Immunity idol
+      hasIdol: false,
+      idolPlayed: false, // set true on the week it's used
+
+      // Double vote token
+      hasDoubleVote: false,
+
+      // Eavesdrop intel from this week
+      eavesdropIntel: null, // { targetId, targetName, votingFor, votingForName } or faction info
+
+      // NPC rivalries discovered
+      knownRivalries: [], // { npc1Id, npc1Name, npc2Id, npc2Name }
+
       // Game log — tracks key decisions for endgame recap
       gameLog: [],
 
@@ -194,6 +207,22 @@ const useGameStore = create(
             ? { ...s.player.stats, cut: Math.min(10, s.player.stats.cut + 1) }
             : s.player.stats,
         },
+      })),
+
+      // Idol
+      findIdol: () => set({ hasIdol: true }),
+      playIdol: () => set({ hasIdol: false, idolPlayed: true }),
+
+      // Double vote
+      grantDoubleVote: () => set({ hasDoubleVote: true }),
+      useDoubleVote: () => set({ hasDoubleVote: false }),
+
+      // Eavesdrop
+      setEavesdropIntel: (intel) => set({ eavesdropIntel: intel }),
+
+      // Rivalries
+      addRivalry: (rivalry) => set((s) => ({
+        knownRivalries: [...s.knownRivalries, rivalry],
       })),
 
       // Game log
@@ -391,6 +420,8 @@ const useGameStore = create(
           lastTribalResult: null,
           lastChallengeResult: null,
           lobbyedVotes: {},
+          idolPlayed: false,
+          eavesdropIntel: null,
           contestants: postEventContestants,
           npcFactions,
           playerCircle,
@@ -476,6 +507,11 @@ const useGameStore = create(
         lastTribalResult: null,
         lastChallengeResult: null,
         lobbyedVotes: {},
+        hasIdol: false,
+        idolPlayed: false,
+        hasDoubleVote: false,
+        eavesdropIntel: null,
+        knownRivalries: [],
       }),
     }),
     {

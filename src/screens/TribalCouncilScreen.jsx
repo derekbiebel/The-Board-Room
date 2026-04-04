@@ -10,10 +10,14 @@ export default function TribalCouncilScreen() {
   const {
     day, contestants, player, immunePlayerId, lobbyedVotes,
     playerCircle, npcFactions,
+    hasIdol, hasDoubleVote, eavesdropIntel, knownRivalries,
     setSpotlightStat, setTribalResult, eliminateContestant, setScreen, checkGameOver,
+    playIdol, useDoubleVote, logEvent,
   } = useGameStore();
 
-  const [phase, setPhase] = useState('neutral_qa'); // neutral_qa | vote | counting | reveal | narration | elimination_recap
+  const [phase, setPhase] = useState('neutral_qa');
+  const [idolUsed, setIdolUsed] = useState(false);
+  const [doubleVoteUsed, setDoubleVoteUsed] = useState(false);
   const [spotlight] = useState(() => pickTribalSpotlight(day));
   const [playerVote, setPlayerVote] = useState(null);
   const [npcVoteDetails, setNpcVoteDetails] = useState([]);
@@ -111,8 +115,20 @@ export default function TribalCouncilScreen() {
     // Save NPC vote details for potential elimination recap
     setNpcVoteDetails(npcVotes);
 
+    // If idol is played, remove all votes against player
+    let effectiveNpcVotes = npcVotes;
+    if (idolUsed) {
+      effectiveNpcVotes = npcVotes.map((v) =>
+        v.targetId === player.id ? { ...v, targetId: null } : v
+      ).filter((v) => v.targetId !== null);
+    }
+
+    // Double vote: extra vote weight
+    const leadStat = player.stats.lead;
+    const extraVoteWeight = doubleVoteUsed ? 2 : 0;
+
     // Tally
-    const result = tallyVotes(npcVotes, targetId, player.stats.lead);
+    const result = tallyVotes(effectiveNpcVotes, targetId, leadStat, extraVoteWeight);
     setVoteResult(result);
     setTribalResult(result);
 
@@ -312,6 +328,57 @@ export default function TribalCouncilScreen() {
         {/* Voting phase */}
         {phase === 'vote' && (
           <div className="fade-in">
+            {/* Eavesdrop intel */}
+            {eavesdropIntel && (
+              <div className="bg-earth-800 border border-sand/30 rounded-lg p-3 mb-3 text-sm text-sand">
+                👂 Intel: {eavesdropIntel.targetName} is likely voting for <span className="text-earth-100 font-medium">{eavesdropIntel.votingForName}</span>
+              </div>
+            )}
+
+            {/* Known rivalries */}
+            {knownRivalries.length > 0 && (
+              <div className="bg-earth-800 border border-earth-700 rounded-lg p-3 mb-3">
+                <p className="text-xs text-earth-600 mb-1">Known rivalries:</p>
+                {knownRivalries.slice(-3).map((r, i) => (
+                  <p key={i} className="text-xs text-earth-300">{r.npc1Name} ⚔️ {r.npc2Name}</p>
+                ))}
+              </div>
+            )}
+
+            {/* Power plays */}
+            {(hasIdol || hasDoubleVote) && (
+              <div className="space-y-2 mb-3">
+                {hasIdol && !idolUsed && (
+                  <button
+                    onClick={() => { setIdolUsed(true); playIdol(); logEvent({ type: 'idol_played' }); }}
+                    className="w-full bg-sand/10 border border-sand rounded-lg p-3 text-center hover:bg-sand/20 transition-colors active:scale-[0.98]"
+                  >
+                    <span className="text-sm font-bold text-sand">🛡️ Play Immunity Idol</span>
+                    <span className="block text-[10px] text-earth-600 mt-0.5">Negates all votes against you this week. One use.</span>
+                  </button>
+                )}
+                {idolUsed && (
+                  <div className="bg-sand/10 border border-sand rounded-lg p-2 text-center">
+                    <span className="text-xs text-sand font-bold">🛡️ Idol played — you're protected</span>
+                  </div>
+                )}
+                {hasDoubleVote && !doubleVoteUsed && (
+                  <button
+                    onClick={() => { setDoubleVoteUsed(true); useDoubleVote(); logEvent({ type: 'double_vote_used' }); }}
+                    className="w-full bg-torch/10 border border-torch/30 rounded-lg p-3 text-center hover:bg-torch/20 transition-colors active:scale-[0.98]"
+                  >
+                    <span className="text-sm font-bold text-torch">⚡ Use Double Vote</span>
+                    <span className="block text-[10px] text-earth-600 mt-0.5">Your vote counts for +2 extra this week. One use.</span>
+                  </button>
+                )}
+                {doubleVoteUsed && (
+                  <div className="bg-torch/10 border border-torch/30 rounded-lg p-2 text-center">
+                    <span className="text-xs text-torch font-bold">⚡ Double vote active</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             <p className="text-sm text-earth-300 mb-4 text-center">
               The board is making cuts. Who gets the pink slip?
             </p>

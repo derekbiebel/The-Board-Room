@@ -101,7 +101,30 @@ function findKeyMoments(gameLog, betrayals, eliminationLog, contestants, player)
     });
   }
 
-  // Sort by day, take top 5
+  // Idol found/played
+  for (const e of gameLog.filter((x) => x.type === 'idol_found')) {
+    moments.push({ day: e.day, type: 'win', text: `You found an immunity idol hidden in the office.` });
+  }
+  for (const e of gameLog.filter((x) => x.type === 'idol_played')) {
+    moments.push({ day: e.day, type: 'win', text: `You played your immunity idol. All votes against you were negated.` });
+  }
+
+  // Double vote
+  for (const e of gameLog.filter((x) => x.type === 'double_vote_used')) {
+    moments.push({ day: e.day, type: 'win', text: `You used your double vote token to swing the board meeting.` });
+  }
+
+  // Eavesdrop discoveries
+  for (const e of gameLog.filter((x) => x.type === 'eavesdrop')) {
+    moments.push({ day: e.day, type: 'win', text: `You eavesdropped on ${e.npc} and learned they were targeting ${e.learned}.` });
+  }
+
+  // Rivalry discoveries
+  for (const e of gameLog.filter((x) => x.type === 'rivalry_found')) {
+    moments.push({ day: e.day, type: 'win', text: `You discovered a rivalry between ${e.npc1} and ${e.npc2}.` });
+  }
+
+  // Sort by day, take top 6
   moments.sort((a, b) => a.day - b.day);
   return moments.slice(0, 6);
 }

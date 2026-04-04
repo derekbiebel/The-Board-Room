@@ -37,7 +37,11 @@ export const CONVERSATION_GOALS = [
   { key: 'sabotage', label: 'Throw Under Bus', playerStat: 'snk', npcStat: 'per', playerStatLabel: 'Sneakiness', npcStatLabel: 'Perception', icon: '🚌' },
 ];
 
-// Recruit goal is separate — only shown when conditions are met
+// Special goals — shown when conditions are met
 export const RECRUIT_GOAL = {
   key: 'recruit', label: 'Bring Into Your Circle', playerStat: 'soc', npcStat: 'soc', playerStatLabel: 'Social Skills', npcStatLabel: 'Social Skills', icon: '🤝',
+};
+
+export const EAVESDROP_GOAL = {
+  key: 'eavesdrop', label: 'Eavesdrop', playerStat: 'per', npcStat: 'snk', playerStatLabel: 'Perception', npcStatLabel: 'Sneakiness', icon: '👂',
 };
