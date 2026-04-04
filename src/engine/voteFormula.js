@@ -177,8 +177,8 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
       // New hire grace period
       let graceBonus = 0;
       if (target.id === playerId) {
-        if (day <= 2) graceBonus = -2;
-        else if (day <= 4) graceBonus = -1;
+        if (day <= 2) graceBonus = -1;
+        else if (day <= 3) graceBonus = -0.5;
       }
 
       // Trait effects and circle threat on voting
