@@ -390,8 +390,8 @@ export default function TribalCouncilScreen() {
             {eavesdropIntel.length > 0 && (
               <div className="bg-earth-800 border border-sand/30 rounded-lg p-3 mb-3 space-y-1">
                 {eavesdropIntel.map((ei, i) => (
-                  <p key={i} className="text-xs text-sand">
-                    👂 {ei.targetName} → <span className="text-earth-100 font-medium">{ei.votingForName}</span>
+                  <p key={i} className={`text-xs ${ei.votingForId === player.id ? 'text-ember font-bold' : 'text-sand'}`}>
+                    {ei.votingForId === player.id ? '⚠️' : '👂'} {ei.targetName} → <span className={ei.votingForId === player.id ? 'text-ember' : 'text-earth-100 font-medium'}>{ei.votingForId === player.id ? 'YOU' : ei.votingForName}</span>
                     {ei.isFactionIntel && <span className="text-earth-600"> (faction)</span>}
                   </p>
                 ))}

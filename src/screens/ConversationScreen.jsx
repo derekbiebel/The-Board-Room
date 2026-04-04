@@ -291,11 +291,26 @@ export default function ConversationScreen() {
           return;
         }
 
-        setOutcomeNarration(
-          result.tier === 'strong_success'
-            ? `You overheard everything. ${contestant.name} is gunning for ${voteTarget?.name}. And there's bad blood between them.`
-            : `You caught a fragment. Sounds like ${contestant.name} is leaning toward voting for ${voteTarget?.name}.`
-        );
+        const targetIsPlayer = voteTarget?.id === player.id;
+        if (targetIsPlayer) {
+          const factionWarning = contestant.factionId
+            ? (() => {
+                const faction = npcFactions.find((f) => f.id === contestant.factionId);
+                return faction ? ` And ${faction.name} is coordinating.` : '';
+              })()
+            : '';
+          setOutcomeNarration(
+            result.tier === 'strong_success'
+              ? `Your blood runs cold. ${contestant.name} is coming for YOU.${factionWarning} You need to act — now.`
+              : `You catch your own name in the conversation. ${contestant.name} is thinking about voting for you.`
+          );
+        } else {
+          setOutcomeNarration(
+            result.tier === 'strong_success'
+              ? `You overheard everything. ${contestant.name} is gunning for ${voteTarget?.name}. And there's bad blood between them.`
+              : `You caught a fragment. Sounds like ${contestant.name} is leaning toward voting for ${voteTarget?.name}.`
+          );
+        }
       } else {
         // Failed eavesdrop
         if (result.tier === 'hard_fail') {

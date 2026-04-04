@@ -84,7 +84,9 @@ export default function ContestantCard({
             {convoCount > 0 ? `${convoCount} chat${convoCount !== 1 ? 's' : ''}` : 'no contact'}
           </div>
           {voteTarget && (
-            <div className="text-[10px] text-ember">🎯 {voteTarget}</div>
+            <div className={`text-[10px] font-bold ${voteTarget === 'You' ? 'text-ember animate-pulse' : 'text-sand'}`}>
+              🎯 {voteTarget}
+            </div>
           )}
         </div>
       </div>

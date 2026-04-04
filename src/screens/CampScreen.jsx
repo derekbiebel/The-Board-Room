@@ -208,7 +208,7 @@ export default function CampScreen() {
             const isDiscovered = faction && discoveredFactions.includes(faction.id);
             const convoCount = gameLog.filter((e) => e.npc === c.name).length;
             const vtIntel = eavesdropIntel.find((ei) => ei.targetId === c.id);
-            const vt = vtIntel ? vtIntel.votingForName : null;
+            const vt = vtIntel ? (vtIntel.votingForId === player.id ? 'You' : vtIntel.votingForName) : null;
             return (
               <ContestantCard
                 key={c.id}
