@@ -21,7 +21,7 @@ export default function TribalCouncilScreen() {
   const [narration, setNarration] = useState('');
 
   // Neutral Q&A state
-  const [neutralQuestions, setNeutralQuestions] = useState([]);
+  const [neutralQuestions, setNeutralQuestions] = useState(null);
   const [neutralQIndex, setNeutralQIndex] = useState(0);
   const [neutralResults, setNeutralResults] = useState([]);
 
@@ -29,9 +29,7 @@ export default function TribalCouncilScreen() {
   const voteTargets = active.filter((c) => c.id !== immunePlayerId);
 
   // Generate neutral questions on mount
-  const [initialized, setInitialized] = useState(false);
-  if (!initialized) {
-    setInitialized(true);
+  useEffect(() => {
     const neutrals = active.filter((c) => {
       const rel = player.relationships[c.id] || 0;
       return rel === 0 && !playerCircle.includes(c.id);
@@ -39,7 +37,6 @@ export default function TribalCouncilScreen() {
     const askers = shuffle([...neutrals]).slice(0, Math.min(3, neutrals.length));
 
     const questions = askers.map((npc) => {
-      const arch = ARCHETYPES[npc.archetype];
       const qs = [
         {
           question: `${npc.name} glances at you. "We've never really talked. Why should I keep you around?"`,
@@ -71,10 +68,11 @@ export default function TribalCouncilScreen() {
 
     if (questions.length === 0) {
       setPhase('vote');
+      setNeutralQuestions([]);
     } else {
       setNeutralQuestions(questions);
     }
-  }
+  }, []);
 
   // Check if player is immune
   const playerIsImmune = immunePlayerId === 'player';
@@ -267,7 +265,7 @@ export default function TribalCouncilScreen() {
 
       <div className="flex-1 p-4 overflow-y-auto">
         {/* Neutral Q&A — work the room before the vote */}
-        {phase === 'neutral_qa' && neutralQuestions.length > 0 && neutralQuestions[neutralQIndex] && (
+        {phase === 'neutral_qa' && neutralQuestions && neutralQuestions.length > 0 && neutralQuestions[neutralQIndex] && (
           <div className="fade-in">
             <p className="text-xs text-earth-600 text-center mb-4">
               Before the vote — {neutralQuestions.length - neutralQIndex} question{neutralQuestions.length - neutralQIndex !== 1 ? 's' : ''} remaining
