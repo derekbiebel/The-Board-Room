@@ -201,6 +201,13 @@ const useGameStore = create(
         const c = s.contestants.find((x) => x.id === npcId);
         if (!c) return s;
         const relationship = s.player.relationships[npcId] || 0;
+
+        // Remove from faction if they were in one
+        const npcFactions = s.npcFactions.map((f) => ({
+          ...f,
+          memberIds: f.memberIds.filter((id) => id !== npcId),
+        })).filter((f) => f.memberIds.length >= 2); // dissolve tiny factions
+
         const contestants = s.contestants.map((x) => {
           if (x.id !== npcId) return x;
           return {
@@ -208,10 +215,12 @@ const useGameStore = create(
             circleStatus: 'member',
             circleLoyalty: Math.min(6, 1 + relationship),
             circleJoinedDay: s.day,
+            factionId: null, // leave faction
           };
         });
         return {
           playerCircle: [...s.playerCircle, npcId],
+          npcFactions,
           contestants,
         };
       }),
