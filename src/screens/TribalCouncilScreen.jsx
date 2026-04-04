@@ -12,7 +12,7 @@ export default function TribalCouncilScreen() {
     setSpotlightStat, setTribalResult, eliminateContestant, setScreen, checkGameOver,
   } = useGameStore();
 
-  const [phase, setPhase] = useState('vote'); // vote | counting | reveal | narration | elimination_recap
+  const [phase, setPhase] = useState('neutral_qa'); // neutral_qa | vote | counting | reveal | narration | elimination_recap
   const [spotlight] = useState(() => pickTribalSpotlight(day));
   const [playerVote, setPlayerVote] = useState(null);
   const [npcVoteDetails, setNpcVoteDetails] = useState([]);
@@ -20,11 +20,101 @@ export default function TribalCouncilScreen() {
   const [revealIndex, setRevealIndex] = useState(0);
   const [narration, setNarration] = useState('');
 
+  // Neutral Q&A state
+  const [neutralQuestions, setNeutralQuestions] = useState([]);
+  const [neutralQIndex, setNeutralQIndex] = useState(0);
+  const [neutralResults, setNeutralResults] = useState([]);
+
   const active = contestants.filter((c) => !c.isEliminated);
   const voteTargets = active.filter((c) => c.id !== immunePlayerId);
 
+  // Generate neutral questions on mount
+  const [initialized, setInitialized] = useState(false);
+  if (!initialized) {
+    setInitialized(true);
+    const neutrals = active.filter((c) => {
+      const rel = player.relationships[c.id] || 0;
+      return rel === 0 && !playerCircle.includes(c.id);
+    });
+    const askers = shuffle([...neutrals]).slice(0, Math.min(3, neutrals.length));
+
+    const questions = askers.map((npc) => {
+      const arch = ARCHETYPES[npc.archetype];
+      const qs = [
+        {
+          question: `${npc.name} glances at you. "We've never really talked. Why should I keep you around?"`,
+          options: [
+            { text: "Because I'm not coming for you. I can't say that about everyone here.", goodFor: ['floater', 'loyalist', 'social_butterfly'], badFor: ['schemer', 'bully'] },
+            { text: "Because I'm useful. Stick with me and you'll see.", goodFor: ['strategist', 'schemer'], badFor: ['loyalist', 'social_butterfly'] },
+            { text: "You shouldn't need a reason not to vote for me. I haven't done anything to you.", goodFor: ['wildcard', 'floater'], badFor: ['bully', 'strategist'] },
+          ],
+        },
+        {
+          question: `${npc.name}: "I don't know you. And in this office, that makes me nervous."`,
+          options: [
+            { text: "Fair. Let me fix that — what do you need from me?", goodFor: ['social_butterfly', 'loyalist', 'floater'], badFor: ['bully', 'schemer'] },
+            { text: "I've been busy surviving. But I see you. And I respect how you've played.", goodFor: ['strategist', 'schemer', 'wildcard'], badFor: ['loyalist'] },
+            { text: "Nervous is smart. It means you're paying attention.", goodFor: ['bully', 'wildcard'], badFor: ['social_butterfly', 'floater'] },
+          ],
+        },
+        {
+          question: `${npc.name}: "Everyone's got their people. Who are yours? And why aren't I one of them?"`,
+          options: [
+            { text: "Honestly? I wish you were. I should have reached out sooner.", goodFor: ['loyalist', 'social_butterfly'], badFor: ['schemer', 'strategist'] },
+            { text: "I keep my circle small on purpose. But that doesn't make you my enemy.", goodFor: ['strategist', 'floater', 'wildcard'], badFor: ['bully'] },
+            { text: "I don't owe you an explanation for who I spend my time with.", goodFor: ['bully', 'schemer'], badFor: ['loyalist', 'social_butterfly', 'floater'] },
+          ],
+        },
+      ];
+      return { npc, archetype: npc.archetype, ...pick(qs) };
+    });
+
+    if (questions.length === 0) {
+      setPhase('vote');
+    } else {
+      setNeutralQuestions(questions);
+    }
+  }
+
   // Check if player is immune
   const playerIsImmune = immunePlayerId === 'player';
+
+  const handleNeutralAnswer = (option) => {
+    const q = neutralQuestions[neutralQIndex];
+    const isGood = option.goodFor.includes(q.archetype);
+    const isBad = option.badFor.includes(q.archetype);
+    const store = useGameStore.getState();
+
+    let resultText;
+    if (isGood) {
+      store.updateRelationship(q.npc.id, 1);
+      resultText = pick([
+        `${q.npc.name} nods. You made an impression.`,
+        `${q.npc.name} seems satisfied. That bought you some goodwill.`,
+        `Something shifted. ${q.npc.name} is on your side — for now.`,
+      ]);
+    } else if (isBad) {
+      store.updateRelationship(q.npc.id, -1);
+      resultText = pick([
+        `${q.npc.name} looks away. Wrong answer.`,
+        `${q.npc.name}'s expression closes off. You just made an enemy.`,
+        `That landed badly. ${q.npc.name} has made up their mind.`,
+      ]);
+    } else {
+      resultText = pick([
+        `${q.npc.name} shrugs. Noncommittal.`,
+        `${q.npc.name} gives you nothing. Could go either way.`,
+      ]);
+    }
+
+    setNeutralResults([...neutralResults, { npc: q.npc.name, good: isGood, bad: isBad, text: resultText }]);
+
+    if (neutralQIndex < neutralQuestions.length - 1) {
+      setNeutralQIndex(neutralQIndex + 1);
+    } else {
+      setPhase('vote');
+    }
+  };
 
   const handleVote = async (targetId) => {
     setPlayerVote(targetId);
@@ -176,6 +266,44 @@ export default function TribalCouncilScreen() {
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto">
+        {/* Neutral Q&A — work the room before the vote */}
+        {phase === 'neutral_qa' && neutralQuestions.length > 0 && neutralQuestions[neutralQIndex] && (
+          <div className="fade-in">
+            <p className="text-xs text-earth-600 text-center mb-4">
+              Before the vote — {neutralQuestions.length - neutralQIndex} question{neutralQuestions.length - neutralQIndex !== 1 ? 's' : ''} remaining
+            </p>
+
+            {/* Previous result */}
+            {neutralResults.length > 0 && (
+              <div className={`text-center py-2 mb-4 rounded-lg text-sm ${
+                neutralResults[neutralResults.length - 1].good ? 'bg-jungle/10 text-jungle-light' :
+                neutralResults[neutralResults.length - 1].bad ? 'bg-ember/10 text-ember' :
+                'bg-earth-800 text-earth-600'
+              }`}>
+                {neutralResults[neutralResults.length - 1].text}
+              </div>
+            )}
+
+            <div className="bg-earth-800 border border-earth-700 rounded-lg p-4 mb-4">
+              <p className="text-sm text-earth-100 font-serif italic">
+                {neutralQuestions[neutralQIndex].question}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              {neutralQuestions[neutralQIndex].options.map((opt, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleNeutralAnswer(opt)}
+                  className="w-full bg-earth-800 border border-earth-700 rounded-lg p-4 text-left hover:border-torch transition-colors active:scale-[0.98]"
+                >
+                  <p className="text-sm text-earth-100">"{opt.text}"</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Voting phase */}
         {phase === 'vote' && (
           <div className="fade-in">
