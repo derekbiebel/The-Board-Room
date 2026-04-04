@@ -24,7 +24,7 @@ function relColor(value) {
 export default function ContestantCard({
   contestant, relationship = 0, onApproach, disabled = false,
   isImmune = false, isCircleMember = false, knownStats = {},
-  factionName = null, convoCount = 0,
+  factionName = null, convoCount = 0, voteTarget = null, factionColor = null,
 }) {
   const archetype = ARCHETYPES[contestant.archetype];
 
@@ -47,13 +47,17 @@ export default function ContestantCard({
       onClick={() => onApproach?.(contestant.id)}
       disabled={disabled}
       className={`
-        relative rounded-lg border text-left transition-all w-full
+        relative rounded-lg border text-left transition-all w-full overflow-hidden
         ${disabled
           ? `${isCircleMember ? 'border-torch/40' : 'border-earth-700'} bg-earth-800 cursor-not-allowed opacity-60`
           : `${isCircleMember ? 'border-torch/40' : 'border-earth-700'} bg-earth-800 hover:border-torch hover:torch-glow cursor-pointer active:scale-[0.98]`
         }
       `}
     >
+      {/* Faction color stripe */}
+      {factionColor && !isCircleMember && (
+        <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg" style={{ backgroundColor: factionColor }} />
+      )}
       {/* Top section: avatar, name, relationship */}
       <div className="flex items-center gap-2 p-3 pb-2">
         <span className="text-xl">{archetype?.emoji || '👤'}</span>
@@ -79,6 +83,9 @@ export default function ContestantCard({
           <div className="text-[10px] text-earth-600">
             {convoCount > 0 ? `${convoCount} chat${convoCount !== 1 ? 's' : ''}` : 'no contact'}
           </div>
+          {voteTarget && (
+            <div className="text-[10px] text-ember">🎯 {voteTarget}</div>
+          )}
         </div>
       </div>
 

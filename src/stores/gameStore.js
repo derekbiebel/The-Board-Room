@@ -72,6 +72,9 @@ const useGameStore = create(
       // NPC rivalries discovered
       knownRivalries: [], // { npc1Id, npc1Name, npc2Id, npc2Name }
 
+      // Discovered faction IDs (through eavesdropping)
+      discoveredFactions: [],
+
       // Game log — tracks key decisions for endgame recap
       gameLog: [],
 
@@ -226,6 +229,11 @@ const useGameStore = create(
       // Rivalries
       addRivalry: (rivalry) => set((s) => ({
         knownRivalries: [...s.knownRivalries, rivalry],
+      })),
+
+      // Faction discovery
+      discoverFaction: (factionId) => set((s) => ({
+        discoveredFactions: s.discoveredFactions.includes(factionId) ? s.discoveredFactions : [...s.discoveredFactions, factionId],
       })),
 
       // Game log
@@ -517,6 +525,7 @@ const useGameStore = create(
         hasDoubleVote: false,
         eavesdropIntel: null,
         knownRivalries: [],
+        discoveredFactions: [],
       }),
     }),
     {

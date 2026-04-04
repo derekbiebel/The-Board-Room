@@ -13,7 +13,7 @@ export default function CampScreen() {
     day, contestants, player, conversationsToday,
     immunePlayerId, eliminationLog, gameLog,
     playerCircle, npcFactions, weeklyIntel, weeklyWarnings, weeklyEvents,
-    eavesdropIntel,
+    eavesdropIntel, discoveredFactions,
     startConversation, updateRelationship, logEvent, setScreen,
   } = useGameStore();
 
@@ -172,31 +172,89 @@ export default function CampScreen() {
           );
         })()}
 
-        {tab === 'camp' && (
-          <>
-            <div className="grid grid-cols-2 gap-2">
-              {active.map((c) => {
-                const faction = npcFactions.find((f) => f.memberIds.includes(c.id));
-                const showFaction = faction && player.stats.per >= 2;
-                const convoCount = gameLog.filter((e) => e.npc === c.name).length;
-                return (
-                  <ContestantCard
-                    key={c.id}
-                    contestant={c}
-                    relationship={player.relationships[c.id] || 0}
-                    onApproach={handleApproach}
-                    disabled={conversationsLeft <= 0 && eavesdropsLeft <= 0}
-                    isImmune={immunePlayerId === c.id}
-                    isCircleMember={playerCircle.includes(c.id)}
-                    knownStats={player.knownInfo[c.id] || {}}
-                    factionName={showFaction ? faction.name : null}
-                    convoCount={convoCount}
-                  />
-                );
-              })}
-            </div>
-          </>
-        )}
+        {tab === 'camp' && (() => {
+          const FACTION_COLORS = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#EC4899'];
+
+          // Group NPCs: circle first, then discovered factions, then unaffiliated
+          const circleNpcs = active.filter((c) => playerCircle.includes(c.id));
+          const discoveredFactionGroups = discoveredFactions
+            .map((fid) => npcFactions.find((f) => f.id === fid))
+            .filter(Boolean)
+            .map((f, i) => ({
+              ...f,
+              color: FACTION_COLORS[i % FACTION_COLORS.length],
+              members: f.memberIds
+                .map((id) => active.find((c) => c.id === id))
+                .filter((c) => c && !playerCircle.includes(c.id)),
+            }))
+            .filter((f) => f.members.length > 0);
+
+          const factionMemberIds = new Set(discoveredFactionGroups.flatMap((f) => f.members.map((m) => m.id)));
+          const unaffiliated = active.filter((c) =>
+            !playerCircle.includes(c.id) && !factionMemberIds.has(c.id)
+          );
+
+          const renderCard = (c, factionColor = null) => {
+            const faction = npcFactions.find((f) => f.memberIds.includes(c.id));
+            const isDiscovered = faction && discoveredFactions.includes(faction.id);
+            const convoCount = gameLog.filter((e) => e.npc === c.name).length;
+            const vt = eavesdropIntel?.targetId === c.id ? eavesdropIntel.votingForName : null;
+            return (
+              <ContestantCard
+                key={c.id}
+                contestant={c}
+                relationship={player.relationships[c.id] || 0}
+                onApproach={handleApproach}
+                disabled={conversationsLeft <= 0 && eavesdropsLeft <= 0}
+                isImmune={immunePlayerId === c.id}
+                isCircleMember={playerCircle.includes(c.id)}
+                knownStats={player.knownInfo[c.id] || {}}
+                factionName={isDiscovered ? faction.name : null}
+                convoCount={convoCount}
+                voteTarget={vt}
+                factionColor={factionColor}
+              />
+            );
+          };
+
+          return (
+            <>
+              {/* Your Circle */}
+              {circleNpcs.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-xs text-torch font-medium mb-2">🤝 Your Inner Circle</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {circleNpcs.map((c) => renderCard(c))}
+                  </div>
+                </div>
+              )}
+
+              {/* Discovered Factions */}
+              {discoveredFactionGroups.map((f) => (
+                <div key={f.id} className="mb-4">
+                  <p className="text-xs font-medium mb-2" style={{ color: f.color }}>
+                    ⚔️ {f.name}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {f.members.map((c) => renderCard(c, f.color))}
+                  </div>
+                </div>
+              ))}
+
+              {/* Unaffiliated */}
+              {unaffiliated.length > 0 && (
+                <div className="mb-4">
+                  {(circleNpcs.length > 0 || discoveredFactionGroups.length > 0) && (
+                    <p className="text-xs text-earth-600 font-medium mb-2">Others</p>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    {unaffiliated.map((c) => renderCard(c))}
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        })()}
 
         {tab === 'circle' && (
           <div className="space-y-4 fade-in">
@@ -246,11 +304,11 @@ export default function CampScreen() {
             </div>
 
             {/* Known Factions */}
-            {npcFactions.length > 0 && player.stats.per >= 2 && (
+            {discoveredFactions.length > 0 && (
               <div>
                 <h2 className="text-sm font-bold text-earth-100 mb-3">Known Factions</h2>
                 <div className="space-y-2">
-                  {npcFactions.map((f) => {
+                  {npcFactions.filter((f) => discoveredFactions.includes(f.id)).map((f) => {
                     const members = f.memberIds
                       .map((id) => contestants.find((c) => c.id === id))
                       .filter((c) => c && !c.isEliminated);
@@ -271,8 +329,8 @@ export default function CampScreen() {
                 </div>
               </div>
             )}
-            {npcFactions.length > 0 && player.stats.per < 2 && (
-              <p className="text-earth-600 text-xs italic">Your Perception isn't high enough to detect office factions yet. (Need 2+)</p>
+            {discoveredFactions.length === 0 && (
+              <p className="text-earth-600 text-xs italic">No factions discovered yet. Eavesdrop on people to uncover office cliques.</p>
             )}
           </div>
         )}

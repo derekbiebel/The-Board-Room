@@ -72,10 +72,10 @@ function generateLocalOptions(goal, npcName) {
 export default function ConversationScreen() {
   const {
     currentConversation, contestants, player,
-    playerCircle, hasIdol, knownRivalries,
+    playerCircle, hasIdol, knownRivalries, npcFactions,
     setConversationGoal, setConversationOptions, setConversationOutcome,
     updateRelationship, lobbyNpc, recruitToCircle, logEvent,
-    findIdol, setEavesdropIntel, addRivalry, setScreen,
+    findIdol, setEavesdropIntel, addRivalry, discoverFaction, setScreen,
   } = useGameStore();
 
   // If goal is already set to eavesdrop (from camp screen), skip to options
@@ -243,6 +243,13 @@ export default function ConversationScreen() {
           votingForName: voteTarget?.name,
         });
         logEvent({ type: 'eavesdrop', npc: contestant.name, learned: voteTarget?.name });
+
+        // Discover the faction this NPC belongs to (if any)
+        if (contestant.factionId) {
+          discoverFaction(contestant.factionId);
+          const faction = npcFactions.find((f) => f.id === contestant.factionId);
+          logEvent({ type: 'faction_discovered', factionName: faction?.name });
+        }
 
         // Strong success also reveals a rivalry
         if (result.tier === 'strong_success' && enemyRel.length >= 1 && enemyRel[0].rel <= -1) {
