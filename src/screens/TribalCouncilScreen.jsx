@@ -12,9 +12,10 @@ export default function TribalCouncilScreen() {
     setSpotlightStat, setTribalResult, eliminateContestant, setScreen, checkGameOver,
   } = useGameStore();
 
-  const [phase, setPhase] = useState('vote'); // vote | counting | reveal | narration
+  const [phase, setPhase] = useState('vote'); // vote | counting | reveal | narration | elimination_recap
   const [spotlight] = useState(() => pickTribalSpotlight(day));
   const [playerVote, setPlayerVote] = useState(null);
+  const [npcVoteDetails, setNpcVoteDetails] = useState([]);
   const [voteResult, setVoteResult] = useState(null);
   const [revealIndex, setRevealIndex] = useState(0);
   const [narration, setNarration] = useState('');
@@ -35,6 +36,9 @@ export default function TribalCouncilScreen() {
       player.relationships, immunePlayerId, spotlight, lobbyedVotes,
       playerCircle, npcFactions, targetId
     );
+
+    // Save NPC vote details for potential elimination recap
+    setNpcVoteDetails(npcVotes);
 
     // Tally
     const result = tallyVotes(npcVotes, targetId, player.stats.lead);
@@ -97,7 +101,7 @@ export default function TribalCouncilScreen() {
   const handleContinue = () => {
     const isPlayerEliminated = voteResult?.eliminatedId === player.id;
     if (isPlayerEliminated) {
-      setScreen('gameOver');
+      setPhase('elimination_recap');
       return;
     }
 
@@ -286,6 +290,94 @@ export default function TribalCouncilScreen() {
               className="w-full bg-torch hover:bg-torch-dim text-earth-900 font-bold py-3 rounded-lg transition-colors active:scale-95"
             >
               Continue
+            </button>
+          </div>
+        )}
+
+        {/* Elimination recap — who voted against you and why */}
+        {phase === 'elimination_recap' && (
+          <div className="fade-in">
+            <div className="text-center mb-4">
+              <p className="text-4xl mb-2">📦</p>
+              <h2 className="text-lg font-bold text-ember">You've Been Let Go</h2>
+              <p className="text-sm text-earth-600 mt-1">Here's who put your name down — and why.</p>
+            </div>
+
+            <div className="space-y-2 mb-6">
+              {npcVoteDetails
+                .filter((v) => v.targetId === player.id)
+                .map((v, i) => {
+                  const voter = contestants.find((c) => c.id === v.voterId);
+                  if (!voter) return null;
+                  const rel = voter.relationships[player.id] || 0;
+                  const arch = ARCHETYPES[voter.archetype];
+                  const inCircle = playerCircle.includes(voter.id);
+                  const wasBetrayedByPlayer = useGameStore.getState().betrayals.some(
+                    (b) => b.victimId === voter.id && b.detected
+                  );
+
+                  let reason;
+                  if (wasBetrayedByPlayer) {
+                    reason = 'You betrayed them. They never forgot.';
+                  } else if (rel <= -3) {
+                    reason = 'They despised you. This was personal.';
+                  } else if (rel <= -1) {
+                    reason = 'They didn\'t trust you. Bad history.';
+                  } else if (inCircle) {
+                    reason = 'Even your own circle turned on you.';
+                  } else if (voter.factionId) {
+                    const faction = npcFactions.find((f) => f.id === voter.factionId);
+                    reason = faction ? `${faction.name} coordinated against you.` : 'Faction coordination.';
+                  } else if (rel === 0) {
+                    reason = 'You never built a relationship. You were expendable.';
+                  } else {
+                    reason = 'Strategic vote. Nothing personal.';
+                  }
+
+                  return (
+                    <div key={i} className="bg-earth-800 border border-earth-700 rounded-lg p-3 flex items-center gap-3">
+                      <span className="text-lg">{arch?.emoji || '👤'}</span>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-earth-100">{voter.name}</div>
+                        <div className="text-xs text-earth-600 italic">{reason}</div>
+                      </div>
+                      <span className={`text-xs font-medium ${
+                        rel <= -2 ? 'text-ember' : rel <= -1 ? 'text-red-400' : 'text-earth-600'
+                      }`}>
+                        {rel > 0 ? '+' : ''}{rel}
+                      </span>
+                    </div>
+                  );
+                })}
+            </div>
+
+            {/* Who didn't vote for you */}
+            {npcVoteDetails.filter((v) => v.targetId !== player.id).length > 0 && (
+              <div className="mb-6">
+                <p className="text-xs text-earth-600 mb-2">Didn't vote against you:</p>
+                <div className="flex flex-wrap gap-1">
+                  {npcVoteDetails
+                    .filter((v) => v.targetId !== player.id)
+                    .map((v) => {
+                      const voter = contestants.find((c) => c.id === v.voterId);
+                      const inCircle = playerCircle.includes(v.voterId);
+                      return (
+                        <span key={v.voterId} className={`text-xs px-2 py-0.5 rounded-full ${
+                          inCircle ? 'bg-torch/20 text-torch' : 'bg-earth-700 text-earth-300'
+                        }`}>
+                          {voter?.name}
+                        </span>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => setScreen('gameOver')}
+              className="w-full bg-torch hover:bg-torch-dim text-earth-900 font-bold py-3 rounded-lg transition-colors active:scale-95"
+            >
+              See Full Summary
             </button>
           </div>
         )}
