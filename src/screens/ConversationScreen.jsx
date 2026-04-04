@@ -135,16 +135,24 @@ export default function ConversationScreen() {
     const socBonus = isSocialGoal ? Math.floor(player.stats.soc / 3) : 0;
     const playerStat = player.stats[goal.playerStat] + socBonus;
 
-    // Circle members are slightly easier to talk to (+1 bonus)
+    // Circle members are much easier to talk to — they trust you
     // Perception con: sneaky NPCs are extra guarded against perceptive players
     // Resilience pro: +1 bonus when relationship is negative (best under pressure)
     let npcStat = contestant.stats[goal.npcStat];
-    if (isCircleMember) npcStat = Math.max(1, npcStat - 1);
+    if (isCircleMember) npcStat = Math.max(1, npcStat - 3);
     if (player.stats.per >= 5 && contestant.stats.snk >= 5) npcStat += 1;
     if (player.stats.res >= 4 && relationship < 0) npcStat = Math.max(1, npcStat - 1); // res pro
 
     // Resolve the stat check
     const result = resolveStatCheck(playerStat, npcStat);
+
+    // Circle members: worst outcome is neutral (they give you the benefit of the doubt)
+    if (isCircleMember && (result.tier === 'hard_fail' || result.tier === 'partial_fail')) {
+      result.tier = 'neutral';
+      result.relationshipDelta = 0;
+      result.label = 'Neutral';
+    }
+
     setOutcomeResult(result);
 
     // Apply relationship delta with trait modifiers
