@@ -48,6 +48,13 @@ export default function CampScreen() {
               {active.length + 1} employees remain
             </p>
           </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setScreen('help')}
+              className="w-7 h-7 rounded-full border border-earth-700 text-earth-600 hover:text-earth-300 hover:border-earth-600 text-xs font-bold flex items-center justify-center transition-colors"
+            >
+              ?
+            </button>
           <div className="text-right">
             <p className={`text-sm font-medium ${conversationsLeft > 0 ? 'text-torch' : 'text-earth-600'}`}>
               {conversationsLeft} conversation{conversationsLeft !== 1 ? 's' : ''} left
@@ -55,6 +62,7 @@ export default function CampScreen() {
             {isChallengeDay && (
               <p className="text-xs text-sand">📊 Performance review week</p>
             )}
+          </div>
           </div>
         </div>
 

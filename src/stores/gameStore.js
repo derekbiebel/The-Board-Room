@@ -66,7 +66,9 @@ const useGameStore = create(
 
       // ──── Actions ────
 
-      setScreen: (screen) => set({ screen }),
+      previousScreen: null,
+
+      setScreen: (screen) => set((s) => ({ screen, previousScreen: s.screen })),
 
       // Character creation
       setPlayerName: (name) => set((s) => ({
