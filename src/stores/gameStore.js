@@ -289,9 +289,9 @@ const useGameStore = create(
         let contestants = s.contestants.map((c) => {
           if (c.isEliminated) return c;
 
-          // NPC stat growth every 3 weeks
+          // NPC stat growth every 2 weeks
           let stats = c.stats;
-          if (nextDay % 3 === 0) {
+          if (nextDay % 2 === 0) {
             const stat = pick(STAT_KEYS);
             stats = { ...stats, [stat]: Math.min(10, stats[stat] + 1) };
           }
