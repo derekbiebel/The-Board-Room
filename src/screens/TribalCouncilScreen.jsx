@@ -266,6 +266,10 @@ export default function TribalCouncilScreen() {
             )}
 
             <div className="bg-earth-800 border border-earth-700 rounded-lg p-4 mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">{ARCHETYPES[neutralQuestions[neutralQIndex].archetype]?.emoji}</span>
+                <span className="text-xs text-earth-600">{ARCHETYPES[neutralQuestions[neutralQIndex].archetype]?.label}</span>
+              </div>
               <p className="text-sm text-earth-100 font-serif italic">
                 {neutralQuestions[neutralQIndex].question}
               </p>
