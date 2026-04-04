@@ -25,6 +25,7 @@ const useGameStore = create(
       conversationsToday: 0,
       eavesdropsToday: 0,
       maxEavesdrops: 2,
+      circleChatsToday: 0,
       immunePlayerId: null,
       spotlightStat: null,
       gameOver: false,
@@ -128,6 +129,7 @@ const useGameStore = create(
           day: 1,
           conversationsToday: 0,
           eavesdropsToday: 0,
+          circleChatsToday: 0,
         });
       },
 
@@ -145,11 +147,17 @@ const useGameStore = create(
         currentConversation: { ...s.currentConversation, options, narration },
       })),
 
-      setConversationOutcome: (outcome) => set((s) => ({
-        currentConversation: { ...s.currentConversation, outcome },
-        conversationsToday: s.conversationsToday + (s.currentConversation?.goal === 'eavesdrop' ? 0 : 1),
-        eavesdropsToday: s.eavesdropsToday + (s.currentConversation?.goal === 'eavesdrop' ? 1 : 0),
-      })),
+      setConversationOutcome: (outcome) => set((s) => {
+        const isEavesdrop = s.currentConversation?.goal === 'eavesdrop';
+        const contestantId = s.currentConversation?.contestantId;
+        const isCircleChat = !isEavesdrop && s.playerCircle.includes(contestantId) && s.circleChatsToday < 1;
+        return {
+          currentConversation: { ...s.currentConversation, outcome },
+          conversationsToday: s.conversationsToday + (isEavesdrop || isCircleChat ? 0 : 1),
+          eavesdropsToday: s.eavesdropsToday + (isEavesdrop ? 1 : 0),
+          circleChatsToday: s.circleChatsToday + (isCircleChat ? 1 : 0),
+        };
+      }),
 
       updateRelationship: (contestantId, delta) => set((s) => {
         const currentPlayerRel = s.player.relationships[contestantId] || 0;
@@ -430,6 +438,7 @@ const useGameStore = create(
           day: nextDay,
           conversationsToday: 0,
           eavesdropsToday: 0,
+          circleChatsToday: 0,
           immunePlayerId: null,
           spotlightStat: null,
           currentConversation: null,

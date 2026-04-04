@@ -26,7 +26,9 @@ export default function CampScreen() {
   const maxConversations = getMaxConversations(day);
   const conversationsLeft = maxConversations - conversationsToday;
   const maxEavesdrops = useGameStore((s) => s.maxEavesdrops) || 2;
+  const circleChatsToday = useGameStore((s) => s.circleChatsToday);
   const eavesdropsLeft = maxEavesdrops - eavesdropsToday;
+  const freeCircleChatLeft = playerCircle.length > 0 && circleChatsToday < 1;
   const isChallengeDay = day % 3 === 0;
   const [actionMenu, setActionMenu] = useState(null); // contestantId or null
 
@@ -39,7 +41,8 @@ export default function CampScreen() {
   };
 
   const handleApproach = (contestantId) => {
-    if (conversationsLeft <= 0 && eavesdropsLeft <= 0) return;
+    const isCircle = playerCircle.includes(contestantId);
+    if (conversationsLeft <= 0 && eavesdropsLeft <= 0 && !(isCircle && freeCircleChatLeft)) return;
     setActionMenu(contestantId);
   };
 
@@ -86,6 +89,7 @@ export default function CampScreen() {
           <div className="text-right">
             <p className={`text-sm font-medium ${conversationsLeft > 0 ? 'text-torch' : 'text-earth-600'}`}>
               {conversationsLeft} chat{conversationsLeft !== 1 ? 's' : ''} · {eavesdropsLeft} spy
+              {freeCircleChatLeft && <span className="text-jungle-light"> · 1 free</span>}
             </p>
             {isChallengeDay && (
               <p className="text-xs text-sand">📊 Performance review week</p>
@@ -208,7 +212,7 @@ export default function CampScreen() {
                 contestant={c}
                 relationship={player.relationships[c.id] || 0}
                 onApproach={handleApproach}
-                disabled={conversationsLeft <= 0 && eavesdropsLeft <= 0}
+                disabled={conversationsLeft <= 0 && eavesdropsLeft <= 0 && !(playerCircle.includes(c.id) && freeCircleChatLeft)}
                 isImmune={immunePlayerId === c.id}
                 isCircleMember={playerCircle.includes(c.id)}
                 knownStats={player.knownInfo[c.id] || {}}
@@ -438,14 +442,22 @@ export default function CampScreen() {
                 </div>
               );
             })()}
-            <button
-              onClick={handleTalk}
-              disabled={conversationsLeft <= 0}
-              className="w-full bg-earth-700 hover:bg-earth-600 text-earth-100 font-medium py-3 rounded-lg transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              💬 Talk
-              <span className="block text-[10px] text-earth-400 mt-0.5">{conversationsLeft} remaining</span>
-            </button>
+            {(() => {
+              const isCircleMember = playerCircle.includes(actionMenu);
+              const canFreeTalk = isCircleMember && freeCircleChatLeft;
+              return (
+                <button
+                  onClick={handleTalk}
+                  disabled={conversationsLeft <= 0 && !canFreeTalk}
+                  className="w-full bg-earth-700 hover:bg-earth-600 text-earth-100 font-medium py-3 rounded-lg transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  💬 Talk
+                  <span className="block text-[10px] text-earth-400 mt-0.5">
+                    {canFreeTalk ? '🤝 Free circle chat' : `${conversationsLeft} remaining`}
+                  </span>
+                </button>
+              );
+            })()}
             <button
               onClick={handleEavesdrop}
               disabled={eavesdropsLeft <= 0}
