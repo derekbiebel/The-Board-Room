@@ -31,9 +31,9 @@ export default function App() {
 
   // Show help on first ever visit
   useEffect(() => {
-    const seen = localStorage.getItem('the-council-help-seen');
+    const seen = localStorage.getItem('the-board-room-help-seen');
     if (!seen && screen === 'create') {
-      localStorage.setItem('the-council-help-seen', '1');
+      localStorage.setItem('the-board-room-help-seen', '1');
       setScreen('help');
     }
     setCheckedFirstVisit(true);
