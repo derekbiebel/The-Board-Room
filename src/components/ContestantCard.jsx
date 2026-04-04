@@ -24,7 +24,7 @@ function relColor(value) {
 export default function ContestantCard({
   contestant, relationship = 0, onApproach, disabled = false,
   isImmune = false, isCircleMember = false, knownStats = {},
-  factionName = null, convoCount = 0, voteTarget = null, factionColor = null,
+  factionName = null, convoCount = 0, voteTarget = null, voteConfidence = null, factionColor = null,
 }) {
   const archetype = ARCHETYPES[contestant.archetype];
 
@@ -86,6 +86,11 @@ export default function ContestantCard({
           {voteTarget && (
             <div className={`text-[10px] font-bold ${voteTarget === 'You' ? 'text-ember animate-pulse' : 'text-sand'}`}>
               🎯 {voteTarget}
+              {voteConfidence && (
+                <span className={`ml-1 font-normal ${voteConfidence >= 75 ? 'text-jungle' : voteConfidence >= 55 ? 'text-sand' : 'text-earth-600'}`}>
+                  {voteConfidence}%
+                </span>
+              )}
             </div>
           )}
         </div>

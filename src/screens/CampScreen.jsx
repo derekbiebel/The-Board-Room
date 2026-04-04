@@ -209,6 +209,7 @@ export default function CampScreen() {
             const convoCount = gameLog.filter((e) => e.npc === c.name).length;
             const vtIntel = eavesdropIntel.find((ei) => ei.targetId === c.id);
             const vt = vtIntel ? (vtIntel.votingForId === player.id ? 'You' : vtIntel.votingForName) : null;
+            const vtConf = vtIntel?.confidence || null;
             return (
               <ContestantCard
                 key={c.id}
@@ -222,6 +223,7 @@ export default function CampScreen() {
                 factionName={isDiscovered ? faction.name : null}
                 convoCount={convoCount}
                 voteTarget={vt}
+                voteConfidence={vtConf}
                 factionColor={factionColor}
               />
             );

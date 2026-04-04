@@ -236,13 +236,21 @@ export default function ConversationScreen() {
 
         // Who they'd vote for (lowest relationship)
         const voteTarget = enemyRel[0];
+
+        // Intel confidence: based on Perception + Social Skills + outcome tier
+        // Range: 40%-95%
+        const baseConfidence = 40 + (player.stats.per * 3) + (player.stats.soc * 2);
+        const tierBonus = result.tier === 'strong_success' ? 10 : 0;
+        const confidence = Math.min(95, baseConfidence + tierBonus);
+
         addEavesdropIntel({
           targetId: contestant.id,
           targetName: contestant.name,
           votingForId: voteTarget?.id,
           votingForName: voteTarget?.name,
+          confidence,
         });
-        logEvent({ type: 'eavesdrop', npc: contestant.name, learned: voteTarget?.name });
+        logEvent({ type: 'eavesdrop', npc: contestant.name, learned: voteTarget?.name, confidence });
 
         // Discover the faction and reveal all members' likely target
         if (contestant.factionId) {
@@ -262,6 +270,7 @@ export default function ConversationScreen() {
                   votingForId: voteTarget.id,
                   votingForName: voteTarget.name,
                   isFactionIntel: true,
+                  confidence: Math.max(35, confidence - 15), // faction intel is less certain
                 });
               }
             }
