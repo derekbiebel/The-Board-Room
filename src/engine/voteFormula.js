@@ -69,9 +69,11 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
   ].filter((t) => t.id !== immuneId && (immuneId !== 'player' || t.id !== playerId));
 
   // Find lowest spotlight stat holder for +2 bonus
+  // Player exempt from spotlight targeting during grace period (weeks 1-2)
   let lowestSpotlightId = null;
   let lowestSpotlightVal = Infinity;
   for (const t of allTargets) {
+    if (t.id === playerId && day <= 2) continue; // grace period: can't be spotlighted
     const val = t.stats[spotlightStat] || 1;
     if (val < lowestSpotlightVal) {
       lowestSpotlightVal = val;
@@ -170,10 +172,10 @@ export function simulateVotes(contestants, playerId, playerStats, playerRelation
         }
       }
 
-      // New hire grace period: -1 vote weight weeks 1-2
+      // New hire grace period
       let graceBonus = 0;
       if (target.id === playerId) {
-        if (day <= 2) graceBonus = -2;
+        if (day <= 2) graceBonus = -3;
         else if (day <= 4) graceBonus = -1;
       }
 
