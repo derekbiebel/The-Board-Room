@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { generateContestants } from '../engine/contestantGen';
-import { uuid, pick } from '../utils/random';
+import { uuid, pick, shuffle, randInt } from '../utils/random';
 import { getMaxCircleSize, processCircleBenefits, updateCircleLoyalty, enforceCircleCap } from '../engine/allianceEngine';
 import { simulateNpcFactions, attemptPoaching } from '../engine/factionEngine';
 import { generateWeeklyEvents, applyEventEffects } from '../engine/eventEngine';
@@ -114,11 +114,27 @@ const useGameStore = create(
         const contestants = generateContestants(19);
         contestants.forEach((c) => { c.relationships[state.player.id] = 0; });
         const playerRelationships = {};
-        contestants.forEach((c) => { playerRelationships[c.id] = 0; });
+        const knownInfo = {};
+        const STAT_KEYS = ['ath', 'soc', 'snk', 'lead', 'cut', 'res', 'per'];
+
+        contestants.forEach((c) => {
+          playerRelationships[c.id] = 0;
+
+          // Reveal ~2 random stats per NPC (1/3 of 7) as "reputation"
+          const revealedStats = shuffle([...STAT_KEYS]).slice(0, 2);
+          knownInfo[c.id] = {};
+          for (const stat of revealedStats) {
+            const actual = c.stats[stat];
+            const fuzz = randInt(-1, 1);
+            const fuzzyVal = Math.max(1, Math.min(10, actual + fuzz));
+            const label = fuzzyVal <= 2 ? 'Weak' : fuzzyVal <= 4 ? 'Low' : fuzzyVal <= 6 ? 'Moderate' : fuzzyVal <= 8 ? 'Strong' : 'Exceptional';
+            knownInfo[c.id][stat] = { label, value: fuzzyVal };
+          }
+        });
 
         set({
           contestants,
-          player: { ...state.player, relationships: playerRelationships, circleReputation: 0 },
+          player: { ...state.player, relationships: playerRelationships, circleReputation: 0, knownInfo },
           playerCircle: [],
           npcFactions: [],
           weeklyIntel: [],
