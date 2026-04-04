@@ -358,9 +358,8 @@ export default function ConversationScreen() {
               </button>
               <button
                 onClick={() => {
-                  // Skip lobbying = genuine connection, +1 bonus relationship
                   updateRelationship(contestant.id, 1);
-                  setScreen('camp');
+                  setPhase('trustBuilt');
                 }}
                 className="w-full bg-torch hover:bg-torch-dim text-earth-900 font-bold py-3 rounded-lg transition-colors active:scale-95"
               >
@@ -457,6 +456,26 @@ export default function ConversationScreen() {
               {recruitResult.accepted ? '🤝 Welcome to the Circle' : 'Not Interested'}
             </p>
             <p className="text-sm text-earth-300">{recruitResult.message}</p>
+          </div>
+
+          <button
+            onClick={() => setScreen('camp')}
+            className="w-full bg-earth-800 hover:bg-earth-700 text-earth-100 font-medium py-3 rounded-lg border border-earth-700 transition-colors active:scale-95"
+          >
+            Return to Office
+          </button>
+        </div>
+      )}
+      {/* Trust built confirmation */}
+      {phase === 'trustBuilt' && (
+        <div className="flex-1 fade-in">
+          <div className="text-center py-4 mb-4 rounded-lg bg-jungle/10 border border-jungle">
+            <p className="text-lg mb-1">🤝</p>
+            <p className="text-sm font-medium text-jungle-light">Bond Strengthened</p>
+            <p className="text-xs text-earth-300 mt-2">
+              You and {contestant.name} shared a genuine moment. No politics, no agenda.
+            </p>
+            <p className="text-xs text-jungle mt-1">+1 relationship</p>
           </div>
 
           <button
