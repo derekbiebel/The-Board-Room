@@ -37,6 +37,12 @@ body {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+}
+
+* {
+  touch-action: pan-y;
+  -webkit-touch-callout: none;
 }
 
 /* Typewriter effect for narration */
