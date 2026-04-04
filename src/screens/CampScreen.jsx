@@ -48,7 +48,14 @@ export default function CampScreen() {
               {active.length + 1} employees remain
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { if (confirm('Start a new game? Progress will be lost.')) useGameStore.getState().resetGame(); }}
+              className="w-7 h-7 rounded-full border border-earth-700 text-earth-600 hover:text-earth-300 hover:border-earth-600 text-xs flex items-center justify-center transition-colors"
+              title="New Game"
+            >
+              ↺
+            </button>
             <button
               onClick={() => setScreen('help')}
               className="w-7 h-7 rounded-full border border-earth-700 text-earth-600 hover:text-earth-300 hover:border-earth-600 text-xs font-bold flex items-center justify-center transition-colors"
