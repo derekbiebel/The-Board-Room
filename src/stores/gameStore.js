@@ -66,8 +66,9 @@ const useGameStore = create(
       // Double vote token
       hasDoubleVote: false,
 
-      // Eavesdrop intel from this week
-      eavesdropIntel: null, // { targetId, targetName, votingFor, votingForName } or faction info
+      // Eavesdrop intel from this week — array of { targetId, targetName, votingForId, votingForName }
+      eavesdropIntel: [],
+      tippedOff: false,
 
       // NPC rivalries discovered
       knownRivalries: [], // { npc1Id, npc1Name, npc2Id, npc2Name }
@@ -224,7 +225,9 @@ const useGameStore = create(
       useDoubleVote: () => set({ hasDoubleVote: false }),
 
       // Eavesdrop
-      setEavesdropIntel: (intel) => set({ eavesdropIntel: intel }),
+      addEavesdropIntel: (intel) => set((s) => ({
+        eavesdropIntel: [...s.eavesdropIntel, intel],
+      })),
 
       // Rivalries
       addRivalry: (rivalry) => set((s) => ({
@@ -433,7 +436,8 @@ const useGameStore = create(
           lastChallengeResult: null,
           lobbyedVotes: {},
           idolPlayed: false,
-          eavesdropIntel: null,
+          eavesdropIntel: [],
+          tippedOff: false,
           contestants: postEventContestants,
           npcFactions,
           playerCircle,
@@ -523,7 +527,8 @@ const useGameStore = create(
         hasIdol: false,
         idolPlayed: false,
         hasDoubleVote: false,
-        eavesdropIntel: null,
+        eavesdropIntel: [],
+        tippedOff: false,
         knownRivalries: [],
         discoveredFactions: [],
       }),

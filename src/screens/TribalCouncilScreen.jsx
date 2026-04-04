@@ -387,9 +387,14 @@ export default function TribalCouncilScreen() {
         {phase === 'vote' && (
           <div className="fade-in">
             {/* Eavesdrop intel */}
-            {eavesdropIntel && (
-              <div className="bg-earth-800 border border-sand/30 rounded-lg p-3 mb-3 text-sm text-sand">
-                👂 Intel: {eavesdropIntel.targetName} is likely voting for <span className="text-earth-100 font-medium">{eavesdropIntel.votingForName}</span>
+            {eavesdropIntel.length > 0 && (
+              <div className="bg-earth-800 border border-sand/30 rounded-lg p-3 mb-3 space-y-1">
+                {eavesdropIntel.map((ei, i) => (
+                  <p key={i} className="text-xs text-sand">
+                    👂 {ei.targetName} → <span className="text-earth-100 font-medium">{ei.votingForName}</span>
+                    {ei.isFactionIntel && <span className="text-earth-600"> (faction)</span>}
+                  </p>
+                ))}
               </div>
             )}
 

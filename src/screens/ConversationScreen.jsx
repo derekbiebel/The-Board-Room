@@ -75,7 +75,7 @@ export default function ConversationScreen() {
     playerCircle, hasIdol, knownRivalries, npcFactions,
     setConversationGoal, setConversationOptions, setConversationOutcome,
     updateRelationship, lobbyNpc, recruitToCircle, logEvent,
-    findIdol, setEavesdropIntel, addRivalry, discoverFaction, setScreen,
+    findIdol, addEavesdropIntel, addRivalry, discoverFaction, setScreen,
   } = useGameStore();
 
   // If goal is already set to eavesdrop (from camp screen), skip to options
@@ -236,7 +236,7 @@ export default function ConversationScreen() {
 
         // Who they'd vote for (lowest relationship)
         const voteTarget = enemyRel[0];
-        setEavesdropIntel({
+        addEavesdropIntel({
           targetId: contestant.id,
           targetName: contestant.name,
           votingForId: voteTarget?.id,
@@ -244,11 +244,28 @@ export default function ConversationScreen() {
         });
         logEvent({ type: 'eavesdrop', npc: contestant.name, learned: voteTarget?.name });
 
-        // Discover the faction this NPC belongs to (if any)
+        // Discover the faction and reveal all members' likely target
         if (contestant.factionId) {
           discoverFaction(contestant.factionId);
           const faction = npcFactions.find((f) => f.id === contestant.factionId);
           logEvent({ type: 'faction_discovered', factionName: faction?.name });
+
+          // Add vote intel for other faction members — they're likely coordinating
+          if (faction && voteTarget) {
+            for (const mid of faction.memberIds) {
+              if (mid === contestant.id) continue;
+              const member = active.find((c) => c.id === mid);
+              if (member) {
+                addEavesdropIntel({
+                  targetId: mid,
+                  targetName: member.name,
+                  votingForId: voteTarget.id,
+                  votingForName: voteTarget.name,
+                  isFactionIntel: true,
+                });
+              }
+            }
+          }
         }
 
         // Strong success also reveals a rivalry

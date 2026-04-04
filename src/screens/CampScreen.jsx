@@ -17,9 +17,9 @@ export default function CampScreen() {
     startConversation, updateRelationship, logEvent, setScreen,
   } = useGameStore();
 
+  const tippedOff = useGameStore((s) => s.tippedOff);
   const [tab, setTab] = useState('camp');
   const [dismissedNotifs, setDismissedNotifs] = useState(false);
-  const [tippedOff, setTippedOff] = useState(false);
 
   const eavesdropsToday = useGameStore((s) => s.eavesdropsToday);
   const active = contestants.filter((c) => !c.isEliminated);
@@ -140,22 +140,23 @@ export default function CampScreen() {
         )}
 
         {/* Tip-off option: share eavesdrop intel with the target */}
-        {tab === 'camp' && eavesdropIntel && !tippedOff && (() => {
-          const targetRel = player.relationships[eavesdropIntel.votingForId] || 0;
-          if (targetRel < 1) return null;
-          const target = contestants.find((c) => c.id === eavesdropIntel.votingForId);
+        {tab === 'camp' && eavesdropIntel.length > 0 && !tippedOff && (() => {
+          // Find the first intel where the target has positive relationship with player
+          const tipIntel = eavesdropIntel.find((ei) => !ei.isFactionIntel && (player.relationships[ei.votingForId] || 0) >= 1);
+          if (!tipIntel) return null;
+          const target = contestants.find((c) => c.id === tipIntel.votingForId);
           if (!target || target.isEliminated) return null;
           return (
             <div className="mb-3 bg-earth-800 border border-sand/30 rounded-lg p-3 fade-in">
               <p className="text-xs text-sand mb-2">
-                👂 You know {eavesdropIntel.targetName} is gunning for <span className="text-earth-100 font-medium">{target.name}</span>. Tip them off?
+                👂 You know {tipIntel.targetName} is gunning for <span className="text-earth-100 font-medium">{target.name}</span>. Tip them off?
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => {
                     updateRelationship(target.id, 2);
-                    logEvent({ type: 'tip_off', npc: target.name, about: eavesdropIntel.targetName });
-                    setTippedOff(true);
+                    logEvent({ type: 'tip_off', npc: target.name, about: tipIntel.targetName });
+                    useGameStore.setState({ tippedOff: true });
                   }}
                   className="flex-1 bg-jungle/10 border border-jungle/30 rounded-lg py-2 text-xs text-jungle-light font-medium hover:bg-jungle/20 transition-colors active:scale-95"
                 >
@@ -198,7 +199,8 @@ export default function CampScreen() {
             const faction = npcFactions.find((f) => f.memberIds.includes(c.id));
             const isDiscovered = faction && discoveredFactions.includes(faction.id);
             const convoCount = gameLog.filter((e) => e.npc === c.name).length;
-            const vt = eavesdropIntel?.targetId === c.id ? eavesdropIntel.votingForName : null;
+            const vtIntel = eavesdropIntel.find((ei) => ei.targetId === c.id);
+            const vt = vtIntel ? vtIntel.votingForName : null;
             return (
               <ContestantCard
                 key={c.id}
