@@ -348,23 +348,24 @@ export default function ConversationScreen() {
 
           {/* Lobby option on success */}
           {(outcomeResult.tier === 'strong_success' || outcomeResult.tier === 'partial_success') ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
+              <p className="text-xs text-earth-600 text-center">What do you do with this momentum?</p>
               <button
                 onClick={() => setPhase('lobby')}
-                className="w-full bg-earth-800 hover:bg-earth-700 text-earth-100 font-bold py-3 rounded-lg border border-earth-700 transition-colors active:scale-95"
+                className="w-full bg-ember/10 hover:bg-ember/20 text-earth-100 font-bold py-4 rounded-lg border border-ember/30 transition-colors active:scale-95"
               >
-                🗳️ Suggest who to vote out
-                <span className="block text-[10px] text-earth-600 font-normal mt-0.5">Risk: your target might find out</span>
+                🗳️ Push a vote
+                <span className="block text-[10px] text-earth-600 font-normal mt-0.5">Suggest who to eliminate — but your target might find out</span>
               </button>
               <button
                 onClick={() => {
                   updateRelationship(contestant.id, 1);
                   setPhase('trustBuilt');
                 }}
-                className="w-full bg-torch hover:bg-torch-dim text-earth-900 font-bold py-3 rounded-lg transition-colors active:scale-95"
+                className="w-full bg-jungle/10 hover:bg-jungle/20 text-earth-100 font-bold py-4 rounded-lg border border-jungle/30 transition-colors active:scale-95"
               >
-                Just talk — Build trust
-                <span className="block text-[10px] text-earth-900/60 font-normal mt-0.5">+1 bonus relationship</span>
+                🤝 Deepen the bond
+                <span className="block text-[10px] text-earth-600 font-normal mt-0.5">No agenda, just trust — +1 bonus relationship</span>
               </button>
             </div>
           ) : (
