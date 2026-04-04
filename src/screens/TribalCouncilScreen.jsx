@@ -151,8 +151,13 @@ export default function TribalCouncilScreen() {
 
     const totalToReveal = voteResult.sorted.length;
     if (revealIndex >= totalToReveal) {
+      if (voteResult.isTied) {
+        // Tie — go to revote
+        const timer = setTimeout(() => setPhase('tiebreak'), 1500);
+        return () => clearTimeout(timer);
+      }
       // All revealed, proceed to narration
-      const timer = setTimeout(() => handleElimination(), 1500);
+      const timer = setTimeout(() => runElimination(voteResult.eliminatedId), 1500);
       return () => clearTimeout(timer);
     }
 
@@ -160,12 +165,56 @@ export default function TribalCouncilScreen() {
     return () => clearTimeout(timer);
   }, [phase, revealIndex, voteResult]);
 
-  const handleElimination = () => {
-    setPhase('narration');
+  const handleRevote = (targetId) => {
+    // Revote: only tied candidates. NPCs revote with noise, player picks.
+    const tiedSet = new Set(voteResult.tiedIds);
+    const revoteTally = {};
+    for (const id of voteResult.tiedIds) revoteTally[id] = 0;
 
-    const eliminatedId = voteResult.eliminatedId;
-    const eliminated = contestants.find((c) => c.id === eliminatedId);
-    const isPlayerEliminated = eliminatedId === player.id;
+    // NPCs not in the tie revote
+    for (const voter of active) {
+      if (tiedSet.has(voter.id)) continue; // tied NPCs can't vote for themselves
+      // Pick the tied candidate they like least
+      let worstId = null;
+      let worstRel = Infinity;
+      for (const tid of voteResult.tiedIds) {
+        const rel = tid === player.id
+          ? (voter.relationships[player.id] || 0)
+          : (voter.relationships[tid] || 0);
+        const noise = randInt(-1, 1);
+        if (rel + noise < worstRel) {
+          worstRel = rel + noise;
+          worstId = tid;
+        }
+      }
+      if (worstId) revoteTally[worstId]++;
+    }
+
+    // Player vote
+    let playerWeight = 1;
+    if (player.stats.lead >= 7) playerWeight = 2;
+    revoteTally[targetId] = (revoteTally[targetId] || 0) + playerWeight;
+
+    const sorted = Object.entries(revoteTally).sort((a, b) => b[1] - a[1]);
+    const eliminatedId = sorted[0][0];
+
+    // Update voteResult with revote results
+    setVoteResult({
+      ...voteResult,
+      isTied: false,
+      eliminatedId,
+      sorted,
+      tally: revoteTally,
+      isRevote: true,
+    });
+    setPhase('narration');
+    setTimeout(() => runElimination(eliminatedId), 100);
+  };
+
+  const runElimination = (elimId) => {
+    setPhase('narration');
+    const eliminated = contestants.find((c) => c.id === elimId);
+    const isPlayerEliminated = elimId === player.id;
     const name = isPlayerEliminated ? player.name : eliminated?.name || 'Unknown';
 
     const sendoffs = [
@@ -177,8 +226,8 @@ export default function TribalCouncilScreen() {
     ];
     setNarration(pick(sendoffs));
 
-    if (!isPlayerEliminated && eliminatedId) {
-      eliminateContestant(eliminatedId);
+    if (!isPlayerEliminated && elimId) {
+      eliminateContestant(elimId);
 
       // Cutthroat pro: gain +1 relationship with 2 random surviving NPCs
       if (player.stats.cut >= 4) {
@@ -461,6 +510,64 @@ export default function TribalCouncilScreen() {
                 </p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Tiebreak revote */}
+        {phase === 'tiebreak' && voteResult?.isTied && (
+          <div className="fade-in">
+            <div className="text-center py-4 mb-4 rounded-lg bg-sand/10 border border-sand">
+              <p className="text-lg font-bold text-sand">⚖️ Deadlock</p>
+              <p className="text-xs text-earth-300 mt-1">
+                The vote is tied. Revote — only the tied candidates can be voted for.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              {voteResult.tiedIds.map((tid) => {
+                if (tid === player.id) {
+                  return (
+                    <div key={tid} className="bg-earth-800 border border-torch/30 rounded-lg p-3 text-center">
+                      <span className="text-sm text-torch font-medium">You are tied. You cannot vote.</span>
+                    </div>
+                  );
+                }
+                const c = contestants.find((x) => x.id === tid);
+                const arch = c ? ARCHETYPES[c.archetype] : null;
+                const rel = player.relationships[tid] || 0;
+                // Player can't vote if they're in the tie
+                const playerInTie = voteResult.tiedIds.includes(player.id);
+                return (
+                  <button
+                    key={tid}
+                    onClick={() => !playerInTie && handleRevote(tid)}
+                    disabled={playerInTie}
+                    className={`w-full bg-earth-800 border border-earth-700 rounded-lg p-3 flex items-center gap-3 ${
+                      playerInTie ? 'opacity-50 cursor-not-allowed' : 'hover:border-ember transition-colors active:scale-[0.98]'
+                    }`}
+                  >
+                    <span className="text-xl">{arch?.emoji}</span>
+                    <div className="text-left flex-1">
+                      <div className="text-sm font-medium text-earth-100">{c?.name}</div>
+                      <div className="text-xs text-earth-600">{arch?.label}</div>
+                    </div>
+                    <span className={`text-xs font-medium ${
+                      rel >= 1 ? 'text-jungle' : rel <= -1 ? 'text-ember' : 'text-earth-600'
+                    }`}>
+                      {rel > 0 ? '+' : ''}{rel}
+                    </span>
+                  </button>
+                );
+              })}
+              {voteResult.tiedIds.includes(player.id) && (
+                <button
+                  onClick={() => handleRevote(voteResult.tiedIds.find((id) => id !== player.id))}
+                  className="w-full bg-earth-800 hover:bg-earth-700 text-earth-100 font-bold py-3 rounded-lg border border-earth-700 transition-colors active:scale-95 mt-2"
+                >
+                  Let the others decide your fate
+                </button>
+              )}
+            </div>
           </div>
         )}
 

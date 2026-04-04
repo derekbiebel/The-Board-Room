@@ -237,10 +237,17 @@ export function tallyVotes(npcVotes, playerVote, playerLeadStat, extraVoteWeight
   // Sort by votes descending
   const sorted = Object.entries(tally).sort((a, b) => b[1] - a[1]);
 
+  // Detect tie at the top
+  const topVotes = sorted[0]?.[1] || 0;
+  const tiedIds = sorted.filter(([_, votes]) => votes === topVotes).map(([id]) => id);
+  const isTied = tiedIds.length > 1;
+
   return {
     tally,
     sorted,
-    eliminatedId: sorted[0]?.[0] || null,
+    eliminatedId: isTied ? null : sorted[0]?.[0] || null,
+    isTied,
+    tiedIds,
     totalVotes: sorted,
   };
 }
