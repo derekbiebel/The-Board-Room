@@ -23,6 +23,7 @@ const useGameStore = create(
       day: 1,
       phase: 'morning',
       conversationsToday: 0,
+      eavesdropsToday: 0,
       immunePlayerId: null,
       spotlightStat: null,
       gameOver: false,
@@ -121,6 +122,7 @@ const useGameStore = create(
           screen: 'camp',
           day: 1,
           conversationsToday: 0,
+          eavesdropsToday: 0,
         });
       },
 
@@ -140,7 +142,8 @@ const useGameStore = create(
 
       setConversationOutcome: (outcome) => set((s) => ({
         currentConversation: { ...s.currentConversation, outcome },
-        conversationsToday: s.conversationsToday + 1,
+        conversationsToday: s.conversationsToday + (s.currentConversation?.goal === 'eavesdrop' ? 0 : 1),
+        eavesdropsToday: s.eavesdropsToday + (s.currentConversation?.goal === 'eavesdrop' ? 1 : 0),
       })),
 
       updateRelationship: (contestantId, delta) => set((s) => {
@@ -414,6 +417,7 @@ const useGameStore = create(
         return {
           day: nextDay,
           conversationsToday: 0,
+          eavesdropsToday: 0,
           immunePlayerId: null,
           spotlightStat: null,
           currentConversation: null,
@@ -482,6 +486,7 @@ const useGameStore = create(
         day: 1,
         phase: 'morning',
         conversationsToday: 0,
+        eavesdropsToday: 0,
         immunePlayerId: null,
         spotlightStat: null,
         gameOver: false,

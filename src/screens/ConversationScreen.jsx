@@ -78,13 +78,23 @@ export default function ConversationScreen() {
     findIdol, setEavesdropIntel, addRivalry, setScreen,
   } = useGameStore();
 
-  const [phase, setPhase] = useState('goal');
+  // If goal is already set to eavesdrop (from camp screen), skip to options
+  const isEavesdropMode = currentConversation?.goal === 'eavesdrop';
+  const [phase, setPhase] = useState(isEavesdropMode ? 'options' : 'goal');
   const [outcomeNarration, setOutcomeNarration] = useState('');
   const [outcomeResult, setOutcomeResult] = useState(null);
   const [recruitResult, setRecruitResult] = useState(null);
 
   const contestant = contestants.find((c) => c.id === currentConversation?.contestantId);
   if (!contestant) return null;
+
+  // Generate eavesdrop options on mount if in eavesdrop mode
+  const [eavesdropOptionsSet, setEavesdropOptionsSet] = useState(false);
+  if (isEavesdropMode && !eavesdropOptionsSet && !currentConversation.options) {
+    const options = generateLocalOptions({ key: 'eavesdrop' }, contestant.name);
+    setConversationOptions(options, null);
+    setEavesdropOptionsSet(true);
+  }
 
   const archetype = ARCHETYPES[contestant.archetype];
   const relationship = player.relationships[contestant.id] || 0;
@@ -99,10 +109,10 @@ export default function ConversationScreen() {
     && !isCircleMember
     && contestant.circleStatus !== 'former';
 
-  // Pick 2 random conversation goals + eavesdrop always available + recruit if eligible
+  // Pick 2 random conversation goals + recruit if eligible
+  // Eavesdrop is now a separate action from the camp screen
   const availableGoals = useMemo(() => {
     const goals = shuffle([...CONVERSATION_GOALS]).slice(0, 2);
-    goals.push(EAVESDROP_GOAL);
     if (canRecruit) goals.push(RECRUIT_GOAL);
     return goals;
   }, [canRecruit]);

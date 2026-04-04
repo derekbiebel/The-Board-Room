@@ -21,10 +21,13 @@ export default function CampScreen() {
   const [dismissedNotifs, setDismissedNotifs] = useState(false);
   const [tippedOff, setTippedOff] = useState(false);
 
+  const eavesdropsToday = useGameStore((s) => s.eavesdropsToday);
   const active = contestants.filter((c) => !c.isEliminated);
   const maxConversations = getMaxConversations(day);
   const conversationsLeft = maxConversations - conversationsToday;
+  const eavesdropsLeft = 1 - eavesdropsToday;
   const isChallengeDay = day % 3 === 0;
+  const [actionMenu, setActionMenu] = useState(null); // contestantId or null
 
   const handleEndDay = () => {
     if (isChallengeDay) {
@@ -35,8 +38,23 @@ export default function CampScreen() {
   };
 
   const handleApproach = (contestantId) => {
-    if (conversationsLeft <= 0) return;
-    startConversation(contestantId);
+    if (conversationsLeft <= 0 && eavesdropsLeft <= 0) return;
+    setActionMenu(contestantId);
+  };
+
+  const handleTalk = () => {
+    if (conversationsLeft <= 0 || !actionMenu) return;
+    startConversation(actionMenu);
+    setActionMenu(null);
+  };
+
+  const handleEavesdrop = () => {
+    if (eavesdropsLeft <= 0 || !actionMenu) return;
+    // Set conversation goal to eavesdrop directly
+    useGameStore.getState().startConversation(actionMenu);
+    useGameStore.getState().setConversationGoal('eavesdrop');
+    setActionMenu(null);
+    setScreen('conversation');
   };
 
   return (
@@ -66,7 +84,7 @@ export default function CampScreen() {
             </button>
           <div className="text-right">
             <p className={`text-sm font-medium ${conversationsLeft > 0 ? 'text-torch' : 'text-earth-600'}`}>
-              {conversationsLeft} conversation{conversationsLeft !== 1 ? 's' : ''} left
+              {conversationsLeft} chat{conversationsLeft !== 1 ? 's' : ''} · {eavesdropsLeft} spy
             </p>
             {isChallengeDay && (
               <p className="text-xs text-sand">📊 Performance review week</p>
@@ -167,7 +185,7 @@ export default function CampScreen() {
                     contestant={c}
                     relationship={player.relationships[c.id] || 0}
                     onApproach={handleApproach}
-                    disabled={conversationsLeft <= 0}
+                    disabled={conversationsLeft <= 0 && eavesdropsLeft <= 0}
                     isImmune={immunePlayerId === c.id}
                     isCircleMember={playerCircle.includes(c.id)}
                     knownStats={player.knownInfo[c.id] || {}}
@@ -343,6 +361,47 @@ export default function CampScreen() {
           </div>
         )}
       </div>
+
+      {/* Action menu — Talk or Eavesdrop */}
+      {actionMenu && (
+        <div className="fixed inset-0 bg-black/60 flex items-end justify-center z-50" onClick={() => setActionMenu(null)}>
+          <div className="w-full max-w-[480px] bg-earth-800 border-t border-earth-700 rounded-t-xl p-4 space-y-2" onClick={(e) => e.stopPropagation()}>
+            {(() => {
+              const c = contestants.find((x) => x.id === actionMenu);
+              const arch = c ? ARCHETYPES[c.archetype] : null;
+              return (
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xl">{arch?.emoji}</span>
+                  <span className="text-sm font-bold text-earth-100">{c?.name}</span>
+                  <span className="text-xs text-earth-600">{arch?.label}</span>
+                </div>
+              );
+            })()}
+            <button
+              onClick={handleTalk}
+              disabled={conversationsLeft <= 0}
+              className="w-full bg-earth-700 hover:bg-earth-600 text-earth-100 font-medium py-3 rounded-lg transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              💬 Talk
+              <span className="block text-[10px] text-earth-400 mt-0.5">{conversationsLeft} remaining</span>
+            </button>
+            <button
+              onClick={handleEavesdrop}
+              disabled={eavesdropsLeft <= 0}
+              className="w-full bg-earth-700 hover:bg-earth-600 text-earth-100 font-medium py-3 rounded-lg transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              👂 Eavesdrop
+              <span className="block text-[10px] text-earth-400 mt-0.5">{eavesdropsLeft} remaining · no relationship gain</span>
+            </button>
+            <button
+              onClick={() => setActionMenu(null)}
+              className="w-full text-earth-600 text-xs py-2"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* End Day button */}
       {tab === 'camp' && (
