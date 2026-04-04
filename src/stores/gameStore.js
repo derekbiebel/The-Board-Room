@@ -103,7 +103,7 @@ const useGameStore = create(
         const newVal = current + delta;
         if (newVal < 1 || newVal > 10) return s;
         const totalSpent = Object.values(s.player.stats).reduce((a, b) => a + b, 0) - 7;
-        if (delta > 0 && totalSpent >= 10) return s;
+        if (delta > 0 && totalSpent >= 7) return s;
         return {
           player: { ...s.player, stats: { ...s.player.stats, [stat]: newVal } },
         };

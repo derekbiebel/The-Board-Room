@@ -22,7 +22,7 @@ export default function CharacterCreateScreen() {
   const startGame = useGameStore((s) => s.startGame);
 
   const totalSpent = Object.values(player.stats).reduce((a, b) => a + b, 0) - 7;
-  const remaining = 10 - totalSpent;
+  const remaining = 7 - totalSpent;
   const canStart = player.name.trim().length > 0 && remaining === 0;
 
   return (
@@ -31,7 +31,7 @@ export default function CharacterCreateScreen() {
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-earth-100">New Hire Onboarding</h1>
         <p className="text-earth-600 text-sm mt-1">
-          Distribute 10 points across your employee profile
+          Distribute 7 points across your employee profile
         </p>
       </div>
 
