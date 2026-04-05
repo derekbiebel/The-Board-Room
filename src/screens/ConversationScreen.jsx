@@ -471,7 +471,19 @@ export default function ConversationScreen() {
       {/* Dialogue options */}
       {phase === 'options' && currentConversation.options && (
         <div className="flex-1 fade-in">
-          <p className="text-xs text-earth-600 mb-3">Choose your words carefully.</p>
+          {isEavesdropMode ? (
+            <div className="bg-earth-800 border border-earth-700 rounded-lg p-3 mb-3">
+              <p className="text-xs text-earth-600 mb-1">👂 Eavesdropping on {contestant.name}</p>
+              <p className="text-xs text-earth-300">
+                Your Perception ({player.stats.per}) vs their Sneakiness ({(() => {
+                  const known = (player.knownInfo[contestant.id] || {}).snk;
+                  return known ? `${Math.max(1, known.value - 1)}-${Math.min(10, known.value + 1)}` : '???';
+                })()})
+              </p>
+            </div>
+          ) : (
+            <p className="text-xs text-earth-600 mb-3">Choose your words carefully.</p>
+          )}
 
           <div className="space-y-2">
             {currentConversation.options.map((option, i) => (
