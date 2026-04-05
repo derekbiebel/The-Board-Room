@@ -173,9 +173,14 @@ export default function ConversationScreen() {
     // Resilience: halves negative impacts only (pure damage reduction)
     if (player.stats.res >= 5 && relDelta < 0) relDelta = Math.ceil(relDelta / 2);
 
-    updateRelationship(contestant.id, relDelta);
-    result.relationshipDelta = relDelta; // update for display
-    setConversationOutcome(result);
+    // Special handling for eavesdrop — spy on an NPC (check before normal flow)
+    if (currentConversation.goal === 'eavesdrop') {
+      // handled below, skip normal relationship + outcome
+    } else {
+      updateRelationship(contestant.id, relDelta);
+      result.relationshipDelta = relDelta;
+      setConversationOutcome(result);
+    }
 
     // Local outcome narration
     const outcomeLines = {
@@ -229,16 +234,15 @@ export default function ConversationScreen() {
       }
     }
 
-    // Special handling for eavesdrop — spy on an NPC
     if (currentConversation.goal === 'eavesdrop') {
-      // Undo relationship change — eavesdropping is secret
-      updateRelationship(contestant.id, -relDelta);
       result.relationshipDelta = 0;
 
       if (result.tier === 'strong_success' || result.tier === 'partial_success') {
         // Success: learn who they're planning to vote for (only active NPCs + player)
+        // Exclude faction-mates — they never vote for each other
+        const contestantFaction = contestant.factionId;
         const voteOptions = active
-          .filter((c) => c.id !== contestant.id)
+          .filter((c) => c.id !== contestant.id && (!contestantFaction || c.factionId !== contestantFaction))
           .map((c) => ({ id: c.id, name: c.name, rel: contestant.relationships[c.id] || 0 }));
         // Include player as potential target
         voteOptions.push({ id: player.id, name: player.name, rel: contestant.relationships[player.id] || 0 });

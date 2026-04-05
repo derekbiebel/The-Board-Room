@@ -202,21 +202,39 @@ const useGameStore = create(
         if (!c) return s;
         const relationship = s.player.relationships[npcId] || 0;
 
-        // Remove from faction if they were in one
-        const npcFactions = s.npcFactions.map((f) => ({
-          ...f,
-          memberIds: f.memberIds.filter((id) => id !== npcId),
-        })).filter((f) => f.memberIds.length >= 2); // dissolve tiny factions
+        // Remove from faction if they were in one. If they were the leader, disband entirely.
+        const npcFactions = s.npcFactions
+          .filter((f) => f.leaderId !== npcId) // disband if leader was poached
+          .map((f) => ({
+            ...f,
+            memberIds: f.memberIds.filter((id) => id !== npcId),
+          }))
+          .filter((f) => f.memberIds.length >= 2); // dissolve tiny factions
+
+        // Find which factions were disbanded (leader poached or too small)
+        const survivingFactionIds = new Set(npcFactions.map((f) => f.id));
+        const disbandedMembers = new Set();
+        for (const f of s.npcFactions) {
+          if (!survivingFactionIds.has(f.id)) {
+            f.memberIds.forEach((id) => disbandedMembers.add(id));
+          }
+        }
 
         const contestants = s.contestants.map((x) => {
-          if (x.id !== npcId) return x;
-          return {
-            ...x,
-            circleStatus: 'member',
-            circleLoyalty: Math.min(6, 1 + relationship),
-            circleJoinedDay: s.day,
-            factionId: null, // leave faction
-          };
+          if (x.id === npcId) {
+            return {
+              ...x,
+              circleStatus: 'member',
+              circleLoyalty: Math.min(6, 1 + relationship),
+              circleJoinedDay: s.day,
+              factionId: null,
+            };
+          }
+          // Clear factionId for members of disbanded factions
+          if (disbandedMembers.has(x.id)) {
+            return { ...x, factionId: null };
+          }
+          return x;
         });
         return {
           playerCircle: [...s.playerCircle, npcId],
