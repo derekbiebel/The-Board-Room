@@ -432,25 +432,92 @@ export default function CampScreen() {
         )}
       </div>
 
-      {/* Action menu — Talk or Eavesdrop */}
-      {actionMenu && (
-        <div className="fixed inset-0 bg-black/60 flex items-end justify-center z-50" onClick={() => setActionMenu(null)}>
-          <div className="w-full max-w-[480px] bg-earth-800 border-t border-earth-700 rounded-t-xl p-4 space-y-2" onClick={(e) => e.stopPropagation()}>
-            {(() => {
-              const c = contestants.find((x) => x.id === actionMenu);
-              const arch = c ? ARCHETYPES[c.archetype] : null;
-              return (
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xl">{arch?.emoji}</span>
-                  <span className="text-sm font-bold text-earth-100">{c?.name}</span>
-                  <span className="text-xs text-earth-600">{arch?.label}</span>
+      {/* Action menu — Full profile + Talk or Eavesdrop */}
+      {actionMenu && (() => {
+        const c = contestants.find((x) => x.id === actionMenu);
+        if (!c) return null;
+        const arch = ARCHETYPES[c.archetype];
+        const rel = player.relationships[c.id] || 0;
+        const known = player.knownInfo[c.id] || {};
+        const isCircle = playerCircle.includes(c.id);
+        const canFreeTalk = isCircle && freeCircleChatLeft;
+        const faction = npcFactions.find((f) => f.memberIds.includes(c.id));
+        const showFaction = faction && discoveredFactions.includes(faction.id);
+        const convoCount = gameLog.filter((e) => e.npc === c.name).length;
+        const vtIntel = eavesdropIntel.find((ei) => ei.targetId === c.id);
+        const STAT_ORDER = ['ath', 'soc', 'snk', 'lead', 'cut', 'res', 'per'];
+        const STAT_FULL = { ath: 'Hotness', soc: 'Social Skills', snk: 'Sneakiness', lead: 'Leadership', cut: 'Cutthroat', res: 'Resilience', per: 'Perception' };
+
+        return (
+          <div className="fixed inset-0 bg-black/60 flex items-end justify-center z-50" onClick={() => setActionMenu(null)}>
+            <div className="w-full max-w-[480px] max-h-[85dvh] bg-earth-800 border-t border-earth-700 rounded-t-xl overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+
+              {/* Profile header */}
+              <div className="p-4 border-b border-earth-700">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">{arch?.emoji}</span>
+                  <div className="flex-1">
+                    <h2 className="text-lg font-bold text-earth-100">{c.name}</h2>
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-earth-600">{arch?.label}</span>
+                      {isCircle && <span className="text-torch">🤝 Circle</span>}
+                      {showFaction && <span className="text-sand">⚔️ {faction.name}</span>}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className={`text-lg font-bold ${rel >= 2 ? 'text-jungle-light' : rel >= 1 ? 'text-jungle' : rel <= -2 ? 'text-ember' : rel <= -1 ? 'text-red-400' : 'text-earth-600'}`}>
+                      {rel > 0 ? '+' : ''}{rel}
+                    </span>
+                    <div className="text-[10px] text-earth-600">relationship</div>
+                  </div>
                 </div>
-              );
-            })()}
-            {(() => {
-              const isCircleMember = playerCircle.includes(actionMenu);
-              const canFreeTalk = isCircleMember && freeCircleChatLeft;
-              return (
+                <div className="text-xs text-earth-600 mt-2">
+                  {convoCount > 0 ? `${convoCount} conversation${convoCount !== 1 ? 's' : ''}` : 'No contact yet'}
+                  {vtIntel && (
+                    <span className={`ml-2 ${vtIntel.votingForId === player.id ? 'text-ember font-bold' : 'text-sand'}`}>
+                      · 🎯 {vtIntel.votingForId === player.id ? 'Targeting YOU' : `Targeting ${vtIntel.votingForName}`}
+                      {vtIntel.confidence && ` (${vtIntel.confidence}%)`}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="p-4 border-b border-earth-700">
+                <p className="text-xs text-earth-600 mb-2">Known Stats</p>
+                <div className="space-y-1.5">
+                  {STAT_ORDER.map((stat) => {
+                    const info = known[stat];
+                    const val = info ? (typeof info === 'object' ? info.value : info) : null;
+                    const label = info ? (typeof info === 'object' ? info.label : '') : null;
+                    return (
+                      <div key={stat} className="flex items-center gap-2">
+                        <span className="text-xs text-earth-600 w-20">{STAT_FULL[stat]}</span>
+                        <div className="flex-1 h-2 bg-earth-700 rounded-full overflow-hidden relative">
+                          {val != null ? (
+                            <div
+                              className={`h-full rounded-full opacity-70 ${val <= 2 ? 'bg-ember' : val <= 4 ? 'bg-red-400' : val <= 6 ? 'bg-sand' : val <= 8 ? 'bg-jungle' : 'bg-jungle-light'}`}
+                              style={{ marginLeft: `${(Math.max(0, val - 2) / 10) * 100}%`, width: `${(Math.min(10, val + 1) - Math.max(0, val - 2)) / 10 * 100}%` }}
+                            />
+                          ) : (
+                            <div className="h-full rounded-full bg-earth-600/20" style={{ width: '100%' }} />
+                          )}
+                        </div>
+                        <span className="text-xs w-12 text-right">
+                          {val != null ? (
+                            <span className="text-earth-300">{label || `${Math.max(1, val - 1)}-${Math.min(10, val + 1)}`}</span>
+                          ) : (
+                            <span className="text-earth-600">???</span>
+                          )}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="p-4 space-y-2">
                 <button
                   onClick={handleTalk}
                   disabled={conversationsLeft <= 0 && !canFreeTalk}
@@ -461,25 +528,27 @@ export default function CampScreen() {
                     {canFreeTalk ? '🤝 Free circle chat' : `${conversationsLeft} remaining`}
                   </span>
                 </button>
-              );
-            })()}
-            <button
-              onClick={handleEavesdrop}
-              disabled={eavesdropsLeft <= 0}
-              className="w-full bg-earth-700 hover:bg-earth-600 text-earth-100 font-medium py-3 rounded-lg transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              👂 Eavesdrop
-              <span className="block text-[10px] text-earth-400 mt-0.5">{eavesdropsLeft} remaining · no relationship gain</span>
-            </button>
-            <button
-              onClick={() => setActionMenu(null)}
-              className="w-full text-earth-600 text-xs py-2"
-            >
-              Cancel
-            </button>
+                <button
+                  onClick={handleEavesdrop}
+                  disabled={eavesdropsLeft <= 0}
+                  className="w-full bg-earth-700 hover:bg-earth-600 text-earth-100 font-medium py-3 rounded-lg transition-colors active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  👂 Eavesdrop
+                  <span className="block text-[10px] text-earth-400 mt-0.5">
+                    {eavesdropsLeft} remaining · Your Perception ({player.stats.per}) vs their Sneakiness ({known.snk ? `${Math.max(1, known.snk.value - 1)}-${Math.min(10, known.snk.value + 1)}` : '???'})
+                  </span>
+                </button>
+                <button
+                  onClick={() => setActionMenu(null)}
+                  className="w-full text-earth-600 text-xs py-2"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* End Day button */}
       {tab === 'camp' && (
