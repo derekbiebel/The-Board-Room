@@ -1,6 +1,7 @@
 import { ARCHETYPES, ARCHETYPE_KEYS } from '../data/archetypes';
 import { CONTESTANTS } from '../data/names';
 import { randInt, pick, shuffle, uuid } from '../utils/random';
+import { generateAvatar } from '../utils/avatar';
 
 const STAT_KEYS = ['ath', 'soc', 'snk', 'lead', 'cut', 'res', 'per'];
 const TOTAL_BUDGET = 30;
@@ -66,7 +67,7 @@ export function generateContestants(count = 19) {
       id: contestantId,
       name: contestant.name,
       gender: contestant.gender,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(contestant.name)}&backgroundColor=transparent`,
+      avatar: generateAvatar(contestant.name, contestant.gender),
       archetype: archetypeKey,
       stats,
       hiddenStats: pickHiddenStats(),
