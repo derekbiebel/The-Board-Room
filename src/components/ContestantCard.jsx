@@ -32,7 +32,7 @@ export default function ContestantCard({
     return (
       <div className="relative p-3 rounded-lg border border-earth-700 bg-earth-900 opacity-30 w-full">
         <div className="flex items-center gap-2">
-          <span className="text-lg">{archetype?.emoji || '👤'}</span>
+          <img src={contestant.avatar} alt={contestant.name} className="w-8 h-8 rounded-full bg-earth-700" />
           <div>
             <div className="text-sm font-bold text-earth-100">{contestant.name}</div>
             <div className="text-xs text-ember">Week {contestant.eliminatedDay}</div>
@@ -60,7 +60,7 @@ export default function ContestantCard({
       )}
       {/* Top section: avatar, name, relationship */}
       <div className="flex items-center gap-2 p-3 pb-2">
-        <span className="text-xl">{archetype?.emoji || '👤'}</span>
+        <img src={contestant.avatar} alt={contestant.name} className="w-9 h-9 rounded-full bg-earth-700 shrink-0" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="text-sm font-bold text-earth-100 truncate">{contestant.name}</span>

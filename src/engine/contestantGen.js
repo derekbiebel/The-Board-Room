@@ -1,5 +1,5 @@
 import { ARCHETYPES, ARCHETYPE_KEYS } from '../data/archetypes';
-import { FIRST_NAMES } from '../data/names';
+import { CONTESTANTS } from '../data/names';
 import { randInt, pick, shuffle, uuid } from '../utils/random';
 
 const STAT_KEYS = ['ath', 'soc', 'snk', 'lead', 'cut', 'res', 'per'];
@@ -44,27 +44,29 @@ function weightedPick(keys, weights, totalWeight) {
  * Generate `count` NPC contestants with diverse archetypes.
  */
 export function generateContestants(count = 19) {
-  const names = shuffle([...FIRST_NAMES]).slice(0, count);
+  const picked = shuffle([...CONTESTANTS]).slice(0, count);
 
   // Ensure at least 2 of each archetype, fill the rest randomly
   const archetypePool = [];
   ARCHETYPE_KEYS.forEach((key) => {
     archetypePool.push(key, key);
   });
-  // 14 assigned, need 5 more random
   while (archetypePool.length < count) {
     archetypePool.push(pick(ARCHETYPE_KEYS));
   }
   shuffle(archetypePool);
 
-  return names.map((name, i) => {
+  return picked.map((contestant, i) => {
     const archetypeKey = archetypePool[i];
     const archetype = ARCHETYPES[archetypeKey];
     const stats = distributeStats(archetype.weights);
+    const contestantId = uuid();
 
     return {
-      id: uuid(),
-      name,
+      id: contestantId,
+      name: contestant.name,
+      gender: contestant.gender,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(contestant.name)}&backgroundColor=transparent`,
       archetype: archetypeKey,
       stats,
       hiddenStats: pickHiddenStats(),

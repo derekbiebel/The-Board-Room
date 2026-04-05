@@ -455,7 +455,7 @@ export default function CampScreen() {
               {/* Profile header */}
               <div className="p-4 border-b border-earth-700">
                 <div className="flex items-center gap-3">
-                  <span className="text-3xl">{arch?.emoji}</span>
+                  <img src={c.avatar} alt={c.name} className="w-12 h-12 rounded-full bg-earth-700" />
                   <div className="flex-1">
                     <h2 className="text-lg font-bold text-earth-100">{c.name}</h2>
                     <div className="flex items-center gap-2 text-xs">
